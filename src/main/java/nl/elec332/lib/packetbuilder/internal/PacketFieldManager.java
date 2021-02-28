@@ -2,8 +2,8 @@ package nl.elec332.lib.packetbuilder.internal;
 
 import nl.elec332.lib.packetbuilder.AbstractField;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
-import nl.elec332.lib.packetbuilder.api.field.IFieldFactory;
 import nl.elec332.lib.packetbuilder.api.IPacketFieldManager;
+import nl.elec332.lib.packetbuilder.api.field.IFieldFactory;
 import nl.elec332.lib.packetbuilder.api.field.PacketField;
 import nl.elec332.lib.packetbuilder.api.field.PacketFieldWrapper;
 import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
@@ -31,6 +31,9 @@ public enum PacketFieldManager implements IPacketFieldManager {
     @Override
     @SuppressWarnings("unchecked")
     public <A extends Annotation> void registerFieldFactory(Class<A> annotation, IFieldFactory<A, ?> factory) {
+        if (FIELD_FACTORIES.containsKey(annotation)) {
+            throw new IllegalArgumentException("Annotation already registered: " + annotation);
+        }
         FIELD_FACTORIES.put(annotation, (IFieldFactory<Annotation, Object>) factory);
     }
 
@@ -99,13 +102,7 @@ public enum PacketFieldManager implements IPacketFieldManager {
             if (fAnn != null) {
                 IFieldFactory<Annotation, Object> fif = Objects.requireNonNull(FIELD_FACTORIES.get(fAnn.annotationType()));
                 Annotation finalFAnn = fAnn;
-                factory = o -> {
-                    AbstractField wf = fif.instantiate(finalFAnn, o, (Class<Object>) f.getType(), ReflectionHelper.wrapField(f, o));
-                    if (wf instanceof WrappedReflectionField) {
-                        throw new IllegalStateException();
-                    }
-                    return new WrappedReflectionField(wf, o, f);
-                };
+                factory = o -> fif.instantiate(finalFAnn, o, (Class<Object>) f.getType(), ReflectionHelper.wrapField(f, o));
             } else {
                 if (!AbstractField.class.isAssignableFrom(f.getType())) {
                     throw new UnsupportedOperationException("Field not instanceof AbstractField: " + f);

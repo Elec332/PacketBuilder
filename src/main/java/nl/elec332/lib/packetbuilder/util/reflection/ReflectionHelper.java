@@ -10,8 +10,10 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -56,25 +58,47 @@ public class ReflectionHelper {
         }
     }
 
-//    public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... params) {
-//
-//    }
+    public static Method getMethod(Class<?> root, String name, Class<?>... params) {
+        Method ret;
+        if (root == null || root == Object.class) {
+            return null;
+        }
+        try {
+            ret = root.getDeclaredMethod(name, params);
+        } catch (Exception e) {
+            ret = getMethod(root.getSuperclass(), name, params);
+        }
+        return ret;
+    }
+
+    public static boolean isNonStaticInternalClass(Class<?> clazz) {
+        return clazz != clazz.getNestHost();
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?> culprit, Class<?>... otherParams) {
         Constructor<T> ret;
         try {
-            ret = clazz.getConstructor(add(culprit, otherParams));
+            Class<?>[] pv = add(culprit, otherParams);
+            if (isNonStaticInternalClass(clazz)) {
+                pv = add(clazz, pv);
+            }
+            ret = clazz.getConstructor(pv);
             ret.setAccessible(true);
             return ret;
         } catch (NoSuchMethodException e) {
+            int offset = 0;
+            if (isNonStaticInternalClass(clazz)) {
+                offset++;
+            }
             for (Constructor<?> ctor : clazz.getDeclaredConstructors()) {
-                if (ctor.getParameterCount() == otherParams.length + 1 && ctor.getParameterTypes()[0].isAssignableFrom(culprit)) {
+                if (ctor.getParameterCount() == otherParams.length + 1 + offset && ctor.getParameterTypes()[offset].isAssignableFrom(culprit)) {
                     ret = (Constructor<T>) ctor;
                     ret.setAccessible(true);
                     return ret;
                 }
             }
+            System.out.println(Arrays.toString(clazz.getConstructors()));
             throw new RuntimeException(e);
         }
     }

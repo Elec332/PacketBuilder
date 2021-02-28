@@ -1,23 +1,16 @@
 package nl.elec332.lib.packetbuilder.impl.fields;
 
 import nl.elec332.lib.packetbuilder.api.util.IValueReference;
-import nl.elec332.lib.packetbuilder.util.ValueReference;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Created by Elec332 on 2/28/2021
  */
 public abstract class AbstractListField<T> extends AbstractSimpleField<List<T>> implements List<T> {
-
-    @SafeVarargs
-    public AbstractListField(T... defaultValues) {
-        this(Arrays.asList(defaultValues));
-    }
-
-    public AbstractListField(List<T> defaultValue) {
-        this(new ValueReference<>(defaultValue));
-    }
 
     public AbstractListField(IValueReference<List<T>> reference) {
         super(reference);

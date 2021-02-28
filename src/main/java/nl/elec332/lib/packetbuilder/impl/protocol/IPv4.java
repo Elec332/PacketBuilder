@@ -3,14 +3,12 @@ package nl.elec332.lib.packetbuilder.impl.protocol;
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
 import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
+import nl.elec332.lib.packetbuilder.fields.UnsignedNumberField;
 import nl.elec332.lib.packetbuilder.fields.generic.BitsField;
-import nl.elec332.lib.packetbuilder.fields.generic.SimpleField;
 import nl.elec332.lib.packetbuilder.fields.generic.VariableLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.base.InetAddressField;
 import nl.elec332.lib.packetbuilder.impl.fields.base.NetworkHeaderLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.BitValueField;
-import nl.elec332.lib.packetbuilder.impl.fields.numbers.UnsignedByteField;
-import nl.elec332.lib.packetbuilder.impl.fields.numbers.UnsignedShortField;
 
 import java.net.Inet4Address;
 
@@ -40,11 +38,11 @@ public class IPv4 extends AbstractPacketObject {
     public int ecn = 0;
 
     @RegisteredField
-    @SimpleField(UnsignedShortField.class)
+    @UnsignedNumberField
     public int totalLength = -1;
 
     @RegisteredField
-    @SimpleField(UnsignedShortField.class)
+    @UnsignedNumberField
     public int identification = 7705;
 
     @RegisteredField
@@ -56,16 +54,16 @@ public class IPv4 extends AbstractPacketObject {
     public int fragmentOffset = 0;
 
     @RegisteredField
-    @SimpleField(UnsignedByteField.class)
-    public int ttl = 128;
+    @UnsignedNumberField
+    public short ttl = 128;
 
     @RegisteredField
-    @SimpleField(UnsignedByteField.class)
-    public int protocol = -1;
+    @UnsignedNumberField
+    public short protocol = -1;
 
     @RegisteredField
-    @SimpleField(UnsignedShortField.class)
-    public long headerChecksum = 0;
+    @UnsignedNumberField
+    public int headerChecksum = 0;
 
     @RegisteredField
     @VariableLengthField(value = InetAddressField.class, length = "version")

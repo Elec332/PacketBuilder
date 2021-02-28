@@ -2,12 +2,12 @@ package nl.elec332.lib.packetbuilder.impl.fields.numbers;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.api.util.IValueReference;
-import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
+import nl.elec332.lib.packetbuilder.impl.fields.AbstractNumberField;
 
 /**
  * Created by Elec332 on 2/28/2021
  */
-public class UnsignedIntField extends AbstractSimpleField<Long> {
+public class UnsignedIntField extends AbstractNumberField<Long> {
 
     public UnsignedIntField(IValueReference<Long> reference) {
         super(reference);

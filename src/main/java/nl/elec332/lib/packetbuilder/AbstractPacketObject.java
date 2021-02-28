@@ -62,7 +62,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
     }
 
     protected final Stream<Map.Entry<String, AbstractField<?>>> streamFields() {
-        return getAllFields().entrySet().stream();
+        return getAllFields().entrySet().stream().filter(f -> f.getValue().isValid());
     }
 
     public synchronized Map<String, AbstractField<?>> getAllFields() {

@@ -11,7 +11,12 @@ public interface IPacketBuilder {
 
     <T extends AbstractPacketObject> T decode(byte[] bytes, T root);
 
-    <T extends AbstractPacketObject> byte[] encode(T root, Consumer<T> modifier);
+    default <T extends AbstractPacketObject> byte[] encode(T root, Consumer<T> modifier) {
+        modifier.accept(root);
+        return encode(root);
+    }
+
+    <T extends AbstractPacketObject> byte[] encode(T root);
 
     IPacketPayloadManager getPayloadManager();
 

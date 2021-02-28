@@ -17,6 +17,11 @@ public abstract class AbstractField<T> extends AbstractInternalField<T> {
     public abstract void deserialize(ByteBuf buffer);
 
     @Override
+    protected boolean isValid() {
+        return true;
+    }
+
+    @Override
     public abstract int getObjectSize();
 
     @Override

@@ -26,6 +26,11 @@ public abstract class AbstractWrappedField<T, F extends AbstractField<T>> extend
     }
 
     @Override
+    protected boolean isValid() {
+        return field.isValid();
+    }
+
+    @Override
     public int getObjectSize() {
         return field.getObjectSize();
     }

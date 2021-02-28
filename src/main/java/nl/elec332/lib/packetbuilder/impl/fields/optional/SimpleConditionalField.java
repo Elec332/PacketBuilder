@@ -36,6 +36,11 @@ public class SimpleConditionalField<T, F extends AbstractField<T>> extends Abstr
     }
 
     @Override
+    protected boolean isValid() {
+        return predicate.getAsBoolean();
+    }
+
+    @Override
     public int getObjectSize() {
         if (!predicate.getAsBoolean()) {
             return 0;

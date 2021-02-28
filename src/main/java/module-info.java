@@ -23,12 +23,15 @@ module nl.elec332.lib.packetbuilder {
     exports nl.elec332.lib.packetbuilder.impl.packet;
     exports nl.elec332.lib.packetbuilder.impl.protocol;
 
-    provides IPacketBuilder with PacketBuilder;
+    exports nl.elec332.lib.packetbuilder.util;
+    exports nl.elec332.lib.packetbuilder.util.reflection;
 
-    requires io.netty.buffer;
-    requires io.netty.common;
+    provides IPacketBuilder with PacketBuilder;
 
     //Netty requires this for the cleaner
     requires jdk.unsupported;
+    requires io.netty.buffer;
+    requires io.netty.common;
+
 
 }

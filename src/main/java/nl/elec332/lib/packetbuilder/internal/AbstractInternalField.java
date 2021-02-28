@@ -16,6 +16,8 @@ public abstract class AbstractInternalField<T> implements ISerializableObject, I
     @Override
     public abstract void deserialize(ByteBuf buffer);
 
+    protected abstract boolean isValid();
+
     @Override
     public abstract int getObjectSize();
 
