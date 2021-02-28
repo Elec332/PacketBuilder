@@ -2,30 +2,31 @@ package nl.elec332.lib.packetbuilder.impl.fields.base;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
-import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleObjectField;
+import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 
 /**
  * Created by Elec332 on 2/27/2021
  */
-public class ObjectField<O extends AbstractPacketObject> extends AbstractSimpleObjectField<AbstractPacketObject> {
+public class ObjectField<O extends AbstractPacketObject> extends AbstractSimpleField<O> {
 
-    public ObjectField(AbstractPacketObject defaultValue) {
-        super(defaultValue);
+    public ObjectField(IValueReference<O> reference) {
+        super(reference);
     }
 
     @Override
     public void serialize(ByteBuf buffer) {
-        value.serialize(buffer);
+        get().serialize(buffer);
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        value.deserialize(buffer);
+        get().deserialize(buffer);
     }
 
     @Override
     public int getObjectSize() {
-        return value.getObjectSize();
+        return get().getObjectSize();
     }
 
 }

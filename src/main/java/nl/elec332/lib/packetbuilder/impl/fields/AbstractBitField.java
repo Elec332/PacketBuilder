@@ -1,21 +1,25 @@
 package nl.elec332.lib.packetbuilder.impl.fields;
 
 import io.netty.buffer.ByteBuf;
-import nl.elec332.lib.packetbuilder.AbstractField;
+import nl.elec332.lib.packetbuilder.api.util.ITypedValueReference;
+import nl.elec332.lib.packetbuilder.api.util.IValueReference;
 
 /**
  * Created by Elec332 on 2/27/2021
  */
-public abstract class AbstractBitField extends AbstractField {
+public abstract class AbstractBitField extends AbstractNumberField<Number> {
 
-    public AbstractBitField(long defaultValue, int bits, int bitsStart) {
+    public AbstractBitField(IValueReference<Number> reference, int bits, int bitsStart) {
+        super(reference);
+        if (!(reference instanceof ITypedValueReference)) {
+            throw new IllegalArgumentException();
+        }
         if (bits > 48) {
             throw new UnsupportedOperationException();
         }
         if (bitsStart < 0 || bitsStart > 7) {
             throw new IllegalArgumentException();
         }
-        this.value = defaultValue;
         this.totalBits = bits + bitsStart;
         this.bitsStart = bitsStart;
         long mask = 0;
@@ -34,14 +38,13 @@ public abstract class AbstractBitField extends AbstractField {
             0b0, 0b1, 0b11, 0b111, 0b1111, 0b11111, 0b111111, 0b1111111, 0b11111111
     };
 
-    public long value;
     private final long mask;
     private final int totalBits;
     private final int bitsStart;
 
     @Override
     public void serialize(ByteBuf buffer) {
-        serializeValue(value, buffer);
+        serializeValue(get().longValue(), buffer);
     }
 
     protected void serializeValue(long value, ByteBuf buffer) {
@@ -60,7 +63,7 @@ public abstract class AbstractBitField extends AbstractField {
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        value = deserializeValue(buffer);
+        set(deserializeValue(buffer));
     }
 
     protected long deserializeValue(ByteBuf buffer) {

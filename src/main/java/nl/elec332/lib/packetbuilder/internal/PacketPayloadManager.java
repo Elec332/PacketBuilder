@@ -6,7 +6,9 @@ import nl.elec332.lib.packetbuilder.api.IPacketPayloadManager;
 import nl.elec332.lib.packetbuilder.api.IPayloadBinder;
 import nl.elec332.lib.packetbuilder.impl.packet.NoPayloadPacket;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -26,14 +28,13 @@ public enum PacketPayloadManager implements IPacketPayloadManager {
     private final Map<Class<? extends AbstractPacketObject>, Map<Class<? extends AbstractPacketObject>, BiConsumer<AbstractPacketObject, AbstractPacketObject>>> encodeLayers;
 
     @Override
+    @SuppressWarnings("unchecked")
     public <LOWER extends AbstractPacketObject, UPPER extends AbstractPacketObject> void bindLayers(Class<LOWER> lower, Class<UPPER> upper, IPayloadBinder<LOWER> payloadBinder) {
         bindLayers(lower, upper, (l, buf) -> {
             boolean[] ret = {true};
-            payloadBinder.bindValues(l, (f1, f2) -> ret[0] |= Objects.equals(f1, f2), (s, o) -> ret[0] |= Objects.equals(((AbstractInternalField) Objects.requireNonNull(l.getAllFields().get(s))).getValue(), o));
+            payloadBinder.bindValues(l, (f1, f2) -> ret[0] |= Objects.equals(f1, f2), (s, o) -> ret[0] |= Objects.equals(((AbstractInternalField<?>) Objects.requireNonNull(l.getAllFields().get(s))).get(), o));
             return ret[0];
-        }, (l, u) -> {
-            payloadBinder.bindValues(l, (f1, f2) -> ((AbstractInternalField) f1).importFrom(f2), (s, o) -> ((AbstractInternalField) Objects.requireNonNull(l.getAllFields().get(s))).setValue(o));
-        });
+        }, (l, u) -> payloadBinder.bindValues(l, (f1, f2) -> ((AbstractInternalField<?>) f1).importFrom(f2), (s, o) -> ((AbstractInternalField<Object>) Objects.requireNonNull(l.getAllFields().get(s))).accept(o)));
     }
 
     @Override
@@ -45,12 +46,12 @@ public enum PacketPayloadManager implements IPacketPayloadManager {
 
     @Override
     public AbstractPacketObject getPayload(AbstractPacketObject packet, ByteBuf peekBuffer) {
-        Map<Class<? extends AbstractPacketObject>,  BiPredicate<AbstractPacketObject, ByteBuf>> possibilities = decodeLayers.get(packet.getClass());
+        Map<Class<? extends AbstractPacketObject>, BiPredicate<AbstractPacketObject, ByteBuf>> possibilities = decodeLayers.get(packet.getClass());
         if (possibilities == null || possibilities.isEmpty()) {
             return new NoPayloadPacket();
         }
         Class<? extends AbstractPacketObject> ret = null;
-        for (Map.Entry<Class<? extends AbstractPacketObject>,  BiPredicate<AbstractPacketObject, ByteBuf>> entry : possibilities.entrySet()) {
+        for (Map.Entry<Class<? extends AbstractPacketObject>, BiPredicate<AbstractPacketObject, ByteBuf>> entry : possibilities.entrySet()) {
             if (entry.getValue().test(packet, peekBuffer)) {
                 if (ret == null) {
                     ret = entry.getKey();

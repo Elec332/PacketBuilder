@@ -10,7 +10,9 @@ import nl.elec332.lib.packetbuilder.internal.PacketFieldManager;
 import nl.elec332.lib.packetbuilder.internal.PacketPayloadManager;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -20,6 +22,7 @@ import java.util.stream.Stream;
 /**
  * Created by Elec332 on 2/25/2021
  */
+@SuppressWarnings("unused")
 public abstract class AbstractPacketObject implements ISerializableObject {
 
     public AbstractPacketObject(String name) {
@@ -30,18 +33,18 @@ public abstract class AbstractPacketObject implements ISerializableObject {
     }
 
     protected final String name;
-    private final Map<Field, Function<Object, AbstractField>> fieldFactories;
-    private Map<String, AbstractField> fields;
+    private final Map<Field, Function<Object, AbstractField<?>>> fieldFactories;
+    private Map<String, AbstractField<?>> fields;
     private boolean fieldsFetched;
     private AbstractPacketObject payload;
     private AbstractPacketObject parent;
 
-    protected <T> void registerField(String fieldName, Class<T> fieldType, Supplier<AbstractField> factory) {
+    protected <T> void registerField(String fieldName, Class<T> fieldType, Supplier<AbstractField<T>> factory) {
         registerField(fieldName, fieldType, v -> factory.get());
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> void registerField(String fieldName, Class<T> fieldType, Function<T, AbstractField> factory) {
+    protected <T> void registerField(String fieldName, Class<T> fieldType, Function<T, AbstractField<T>> factory) {
         Field f;
         try {
             f = getClass().getDeclaredField(fieldName);
@@ -51,18 +54,18 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        fieldFactories.put(f, (Function<Object, AbstractField>) factory);
+        fieldFactories.put(f, (Function<Object, AbstractField<?>>) (Function<?, ?>) factory);
     }
 
-    protected final void forFields(BiConsumer<String, AbstractField> consumer) {
+    protected final void forFields(BiConsumer<String, AbstractField<?>> consumer) {
         streamFields().forEach(e -> consumer.accept(e.getKey(), e.getValue()));
     }
 
-    protected final Stream<Map.Entry<String, AbstractField>> streamFields() {
+    protected final Stream<Map.Entry<String, AbstractField<?>>> streamFields() {
         return getAllFields().entrySet().stream();
     }
 
-    public synchronized Map<String, AbstractField> getAllFields() {
+    public synchronized Map<String, AbstractField<?>> getAllFields() {
         checkFields();
         return this.fields;
     }
@@ -130,6 +133,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         return parent == null ? -1 : parent.getPayloadLength() - getObjectSize();
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected void deserializePayload(ByteBuf buffer) {
         if (buffer.readableBytes() == 0) {
             return;
@@ -159,7 +163,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         this.addPayload(new RawPayloadPacket(), d -> d.data = data);
     }
 
-    public  <P extends AbstractPacketObject> void addPayloadT(P data, UnsafeConsumer<P> modifier) {
+    public <P extends AbstractPacketObject> void addPayloadT(P data, UnsafeConsumer<P> modifier) {
         addPayload(data, UnsafeConsumer.wrap(modifier));
     }
 

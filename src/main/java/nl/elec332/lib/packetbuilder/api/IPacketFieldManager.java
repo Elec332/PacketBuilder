@@ -1,5 +1,7 @@
 package nl.elec332.lib.packetbuilder.api;
 
+import nl.elec332.lib.packetbuilder.api.field.IFieldFactory;
+
 import java.lang.annotation.Annotation;
 
 /**

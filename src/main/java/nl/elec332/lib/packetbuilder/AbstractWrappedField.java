@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Created by Elec332 on 2/27/2021
  */
-public class AbstractWrappedField<F extends AbstractField> extends AbstractField {
+public abstract class AbstractWrappedField<T, F extends AbstractField<T>> extends AbstractField<T> {
 
     public AbstractWrappedField(F field) {
         this.field = Objects.requireNonNull(field);
@@ -31,37 +31,27 @@ public class AbstractWrappedField<F extends AbstractField> extends AbstractField
     }
 
     @Override
-    protected void importFrom(AbstractField other) {
+    protected void importFrom(AbstractField<?> other) {
         field.importFrom(other);
     }
 
     @Override
-    protected boolean canImport(AbstractField other) {
+    protected boolean canImport(AbstractField<?> other) {
         return field.canImport(other);
     }
 
     @Override
-    public Object getValue() {
-        return field.getValue();
+    public T get() {
+        return field.get();
     }
 
     @Override
-    protected void setValue(Object value) {
-        field.setValue(value);
+    public void accept(T o) {
+        field.accept(o);
     }
 
     @Override
-    protected Class<?> getType() {
-        return field.getType();
-    }
-
-    @Override
-    protected boolean isWrappedField() {
-        return true;
-    }
-
-    @Override
-    protected AbstractField getRoot() {
+    protected AbstractField<?> getRoot() {
         return field.getRoot();
     }
 
@@ -76,7 +66,7 @@ public class AbstractWrappedField<F extends AbstractField> extends AbstractField
     }
 
     @Override
-    protected boolean fieldsEqual(AbstractField obj) {
+    protected boolean fieldsEqual(AbstractField<?> obj) {
         return field.fieldsEqual(obj);
     }
 

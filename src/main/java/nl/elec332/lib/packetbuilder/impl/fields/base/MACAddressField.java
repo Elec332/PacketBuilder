@@ -2,20 +2,21 @@ package nl.elec332.lib.packetbuilder.impl.fields.base;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.internal.StringUtil;
-import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleObjectField;
+import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 
 /**
  * Created by Elec332 on 2/26/2021
  */
-public class MACAddressField extends AbstractSimpleObjectField<String> {
+public class MACAddressField extends AbstractSimpleField<String> {
 
-    public MACAddressField(String defaultValue) {
-        super(defaultValue);
+    public MACAddressField(IValueReference<String> reference) {
+        super(reference);
     }
 
     @Override
     public void serialize(ByteBuf buffer) {
-        String[] parts = value.split(":");
+        String[] parts = get().split(":");
         if (parts.length != 6) {
             throw new IllegalArgumentException();
         }
@@ -31,7 +32,7 @@ public class MACAddressField extends AbstractSimpleObjectField<String> {
             mac.append(":");
             mac.append(StringUtil.byteToHexStringPadded(buffer.readByte()));
         }
-        this.value = mac.toString();
+        set(mac.toString());
     }
 
     @Override

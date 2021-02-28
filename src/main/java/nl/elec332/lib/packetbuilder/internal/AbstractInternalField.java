@@ -3,11 +3,12 @@ package nl.elec332.lib.packetbuilder.internal;
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractField;
 import nl.elec332.lib.packetbuilder.api.ISerializableObject;
+import nl.elec332.lib.packetbuilder.api.util.IValueReference;
 
 /**
  * Created by Elec332 on 2/26/2021
  */
-public abstract class AbstractInternalField implements ISerializableObject {
+public abstract class AbstractInternalField<T> implements ISerializableObject, IValueReference<T> {
 
     @Override
     public abstract void serialize(ByteBuf buffer);
@@ -18,22 +19,22 @@ public abstract class AbstractInternalField implements ISerializableObject {
     @Override
     public abstract int getObjectSize();
 
-    protected abstract void importFrom(AbstractField other);
+    protected abstract void importFrom(AbstractField<?> other);
 
-    protected abstract boolean canImport(AbstractField other);
+    protected abstract boolean canImport(AbstractField<?> other);
 
-    protected abstract Object getValue();
+    @Override
+    public abstract T get();
 
-    protected abstract void setValue(Object value);
-
-    protected abstract Class<?> getType();
-
-    protected boolean isWrappedField() {
-        return false;
+    public final void set(T t) {
+        accept(t);
     }
 
-    protected AbstractField getRoot() {
-        return (AbstractField) this;
+    @Override
+    public abstract void accept(T t);
+
+    protected AbstractField<?> getRoot() {
+        return (AbstractField<?>) this;
     }
 
     @Override
@@ -43,10 +44,11 @@ public abstract class AbstractInternalField implements ISerializableObject {
     public abstract int hashCode();
 
     @Override
+    @SuppressWarnings("rawtypes")
     public boolean equals(Object obj) {
         return obj instanceof AbstractInternalField && fieldsEqual(((AbstractInternalField) obj).getRoot());
     }
 
-    protected abstract boolean fieldsEqual(AbstractField other);
+    protected abstract boolean fieldsEqual(AbstractField<?> other);
 
 }

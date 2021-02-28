@@ -2,13 +2,13 @@ package nl.elec332.lib.packetbuilder.impl.protocol;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
-import nl.elec332.lib.packetbuilder.api.field.BitsField;
-import nl.elec332.lib.packetbuilder.api.util.RegisteredField;
-import nl.elec332.lib.packetbuilder.api.field.SimpleField;
+import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
+import nl.elec332.lib.packetbuilder.fields.NumberField;
+import nl.elec332.lib.packetbuilder.fields.generic.BitsField;
+import nl.elec332.lib.packetbuilder.fields.generic.SimpleConditionalField;
+import nl.elec332.lib.packetbuilder.fields.generic.SimpleField;
 import nl.elec332.lib.packetbuilder.impl.fields.base.NetworkHeaderLengthField;
-import nl.elec332.lib.packetbuilder.impl.fields.primitive.BitValueField;
-import nl.elec332.lib.packetbuilder.impl.fields.primitive.IntField;
-import nl.elec332.lib.packetbuilder.impl.fields.primitive.UnsignedShortField;
+import nl.elec332.lib.packetbuilder.impl.fields.numbers.*;
 
 /**
  * Created by Elec332 on 2/28/2021
@@ -32,7 +32,7 @@ public class TCP extends AbstractPacketObject {
     public int seq = 0;
 
     @RegisteredField
-    @SimpleField(IntField.class)
+    @NumberField
     public int ack = 0;
 
     @RegisteredField
@@ -71,6 +71,60 @@ public class TCP extends AbstractPacketObject {
         if (headerLength != getPacketSize()) {
             throw new RuntimeException();
         }
+    }
+
+//    class TCPOptionsList extends AbstractListField {
+//
+//        @Override
+//        public void serialize(ByteBuf buffer) {
+//
+//        }
+//
+//        @Override
+//        public void deserialize(ByteBuf buffer) {
+//
+//        }
+//
+//        @Override
+//        protected int getObjectSize(Object object) {
+//            return 0;
+//        }
+//    }
+
+    static class TCPOption extends AbstractPacketObject {
+
+        public TCPOption() {
+            super("TCPOption");
+        }
+
+        @RegisteredField
+        @SimpleField(ByteField.class)
+        public byte kind = 1;
+
+        @RegisteredField
+        @SimpleConditionalField(method = "hasLength")
+        @SimpleField(UnsignedByteField.class)
+        public int length;
+
+        private boolean hasLength() {
+            return kind != 1;
+        }
+
+    }
+
+    public static class NOPOption extends TCPOption {
+    }
+
+    public static class Timestamps extends TCPOption {
+
+        @RegisteredField
+        @SimpleField(UnsignedShortField.class)
+        public int value = 0;
+
+        @RegisteredField
+        @SimpleField(UnsignedShortField.class)
+        public int echoReply = 0;
+
     }
 
 }

@@ -2,15 +2,15 @@ package nl.elec332.lib.packetbuilder.impl.protocol;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
-import nl.elec332.lib.packetbuilder.api.field.BitsField;
-import nl.elec332.lib.packetbuilder.api.util.RegisteredField;
-import nl.elec332.lib.packetbuilder.api.field.SimpleField;
-import nl.elec332.lib.packetbuilder.api.field.VariableLengthField;
+import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
+import nl.elec332.lib.packetbuilder.fields.generic.BitsField;
+import nl.elec332.lib.packetbuilder.fields.generic.SimpleField;
+import nl.elec332.lib.packetbuilder.fields.generic.VariableLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.base.InetAddressField;
 import nl.elec332.lib.packetbuilder.impl.fields.base.NetworkHeaderLengthField;
-import nl.elec332.lib.packetbuilder.impl.fields.primitive.BitValueField;
-import nl.elec332.lib.packetbuilder.impl.fields.primitive.UnsignedByteField;
-import nl.elec332.lib.packetbuilder.impl.fields.primitive.UnsignedShortField;
+import nl.elec332.lib.packetbuilder.impl.fields.numbers.BitValueField;
+import nl.elec332.lib.packetbuilder.impl.fields.numbers.UnsignedByteField;
+import nl.elec332.lib.packetbuilder.impl.fields.numbers.UnsignedShortField;
 
 import java.net.Inet4Address;
 
@@ -65,21 +65,21 @@ public class IPv4 extends AbstractPacketObject {
 
     @RegisteredField
     @SimpleField(UnsignedShortField.class)
-    public int headerChecksum = 0;
+    public long headerChecksum = 0;
 
     @RegisteredField
-    @VariableLengthField(value = InetAddressField.class, lengthField = "version")
+    @VariableLengthField(value = InetAddressField.class, length = "version")
     public Inet4Address source;
 
     @RegisteredField
-    @VariableLengthField(value = InetAddressField.class, lengthField = "version")
+    @VariableLengthField(value = InetAddressField.class, length = "version")
     public Inet4Address destination;
 
     @Override
     protected void beforeSerialization(ByteBuf payload) {
         super.beforeSerialization(payload);
         headerLength = getPacketSize();
-        totalLength = payload.readableBytes() + headerLength;
+        totalLength = (int) (payload.readableBytes() + headerLength);
     }
 
     @Override

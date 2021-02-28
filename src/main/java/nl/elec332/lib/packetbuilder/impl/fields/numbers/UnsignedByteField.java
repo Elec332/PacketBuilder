@@ -1,38 +1,31 @@
-package nl.elec332.lib.packetbuilder.impl.fields.base;
+package nl.elec332.lib.packetbuilder.impl.fields.numbers;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.api.util.IValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 
-import java.util.Arrays;
-
 /**
  * Created by Elec332 on 2/26/2021
  */
-public class ByteArrayField extends AbstractSimpleField<byte[]> {
+public class UnsignedByteField extends AbstractSimpleField<Integer> {
 
-    public ByteArrayField(IValueReference<byte[]> reference) {
+    public UnsignedByteField(IValueReference<Integer> reference) {
         super(reference);
     }
 
     @Override
     public void serialize(ByteBuf buffer) {
-        buffer.writeBytes(get());
+        buffer.writeByte(get() & 0xff);
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        buffer.readBytes(get());
+        set((int) buffer.readUnsignedByte());
     }
 
     @Override
     public int getObjectSize() {
-        return get().length;
-    }
-
-    @Override
-    public String toString() {
-        return Arrays.toString(get());
+        return 1;
     }
 
 }

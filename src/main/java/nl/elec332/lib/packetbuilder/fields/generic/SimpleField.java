@@ -1,6 +1,7 @@
-package nl.elec332.lib.packetbuilder.api.field;
+package nl.elec332.lib.packetbuilder.fields.generic;
 
-import nl.elec332.lib.packetbuilder.impl.fields.AbstractVarLengthField;
+import nl.elec332.lib.packetbuilder.AbstractField;
+import nl.elec332.lib.packetbuilder.api.field.PacketField;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,12 +11,11 @@ import java.lang.annotation.Target;
 /**
  * Created by Elec332 on 2/27/2021
  */
+@PacketField
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface VariableLengthField {
+public @interface SimpleField {
 
-    Class<? extends AbstractVarLengthField> value();
-
-    String lengthField();
+    Class<? extends AbstractField> value();
 
 }

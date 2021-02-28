@@ -10,7 +10,7 @@ import java.util.function.BooleanSupplier;
 /**
  * Created by Elec332 on 2/28/2021
  */
-public class SimpleConditionalField<F extends AbstractField> extends AbstractWrappedField<F> {
+public class SimpleConditionalField<T, F extends AbstractField<T>> extends AbstractWrappedField<T, F> {
 
     public SimpleConditionalField(F field, BooleanSupplier predicate) {
         super(field);

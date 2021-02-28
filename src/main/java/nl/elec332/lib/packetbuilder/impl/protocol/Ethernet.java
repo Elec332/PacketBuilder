@@ -1,10 +1,10 @@
 package nl.elec332.lib.packetbuilder.impl.protocol;
 
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
-import nl.elec332.lib.packetbuilder.api.util.RegisteredField;
-import nl.elec332.lib.packetbuilder.api.field.SimpleField;
+import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
+import nl.elec332.lib.packetbuilder.fields.generic.SimpleField;
 import nl.elec332.lib.packetbuilder.impl.fields.base.MACAddressField;
-import nl.elec332.lib.packetbuilder.impl.fields.primitive.UnsignedShortField;
+import nl.elec332.lib.packetbuilder.impl.fields.numbers.UnsignedShortField;
 
 /**
  * Created by Elec332 on 2/26/2021
@@ -17,7 +17,7 @@ public class Ethernet extends AbstractPacketObject {
 
     @RegisteredField
     @SimpleField(MACAddressField.class)
-    public String destination ="00:00:00:00:00:00";
+    public String destination = "00:00:00:00:00:00";
 
     @RegisteredField
     @SimpleField(MACAddressField.class)

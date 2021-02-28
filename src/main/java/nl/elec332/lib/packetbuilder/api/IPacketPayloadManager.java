@@ -22,11 +22,13 @@ public interface IPacketPayloadManager {
     }
 
     default <LOWER extends AbstractPacketObject, UPPER extends AbstractPacketObject> void bindLayers(Class<LOWER> lower, Class<UPPER> upper, Predicate<LOWER> predicate) {
-        bindLayers(lower, upper, predicate, (a, b) -> {});
+        bindLayers(lower, upper, predicate, (a, b) -> {
+        });
     }
 
     default <LOWER extends AbstractPacketObject, UPPER extends AbstractPacketObject> void bindLayers(Class<LOWER> lower, Class<UPPER> upper, BiPredicate<LOWER, ByteBuf> predicate) {
-        bindLayers(lower, upper, predicate, (a, b) -> {});
+        bindLayers(lower, upper, predicate, (a, b) -> {
+        });
     }
 
     default <LOWER extends AbstractPacketObject, UPPER extends AbstractPacketObject> void bindLayers(Class<LOWER> lower, Class<UPPER> upper, BiConsumer<LOWER, UPPER> payloadHandler) {

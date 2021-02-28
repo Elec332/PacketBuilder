@@ -13,9 +13,9 @@ import java.util.Objects;
 /**
  * Created by Elec332 on 2/27/2021
  */
-public final class WrappedReflectionField extends AbstractWrappedField<AbstractField> {
+public final class WrappedReflectionField extends AbstractWrappedField<Object, AbstractField<Object>> {
 
-    public WrappedReflectionField(AbstractField field, Object instance, Field value) {
+    public WrappedReflectionField(AbstractField<Object> field, Object instance, Field value) {
         super(field);
         this.instance = instance;
         try {
@@ -60,55 +60,57 @@ public final class WrappedReflectionField extends AbstractWrappedField<AbstractF
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
-            if (!Objects.equals(o, super.getValue())) {
-                throw new IllegalStateException("Values do not match! " + super.getValue() + " should be " + o);
+            if (!Objects.equals(o, super.get())) {
+                throw new IllegalStateException("Values do not match! " + super.get() + " should be " + o);
             }
         } else {
             try {
-                valueSetter.invoke(instance, super.getValue());
+                valueSetter.invoke(instance, super.get());
             } catch (Throwable t) {
                 throw new RuntimeException(t);
             }
         }
     }
 
+    boolean me = false;
+
     private void setValue() {
+        me = true;
         try {
-            super.setValue(valueGetter.invoke(instance));
+            super.set(valueGetter.invoke(instance));
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
+        me = false;
     }
 
     @Override
-    protected void importFrom(AbstractField other) {
+    protected void importFrom(AbstractField<?> other) {
         setValue();
         super.importFrom(other);
     }
 
     @Override
-    protected boolean canImport(AbstractField other) {
+    protected boolean canImport(AbstractField<?> other) {
         setValue();
         return super.canImport(other);
     }
 
     @Override
-    public Object getValue() {
+    public Object get() {
         setValue();
-        return super.getValue();
+        return super.get();
     }
 
     @Override
-    protected void setValue(Object value) {
-        setValue();
-        super.setValue(value);
-        setValueToRoot();
-    }
-
-    @Override
-    protected Class<?> getType() {
-        setValue();
-        return super.getType();
+    public void accept(Object o) {
+        if (!me) {
+            setValue();
+            super.accept(o);
+            setValueToRoot();
+        } else {
+            super.accept(o);
+        }
     }
 
     @Override
@@ -124,7 +126,7 @@ public final class WrappedReflectionField extends AbstractWrappedField<AbstractF
     }
 
     @Override
-    protected boolean fieldsEqual(AbstractField other) {
+    protected boolean fieldsEqual(AbstractField<?> other) {
         setValue();
         return getRoot().equals(other);
     }

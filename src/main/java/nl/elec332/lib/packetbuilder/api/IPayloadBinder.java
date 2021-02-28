@@ -11,6 +11,6 @@ import java.util.function.BiConsumer;
  */
 public interface IPayloadBinder<T extends AbstractPacketObject> {
 
-    void bindValues(T packet, SingleBiConsumer<AbstractField> comparator, BiConsumer<String, Object> comparator2);
+    void bindValues(T packet, SingleBiConsumer<AbstractField<?>> comparator, BiConsumer<String, Object> comparator2);
 
 }

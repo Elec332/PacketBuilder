@@ -1,4 +1,4 @@
-package nl.elec332.lib.packetbuilder.api.util;
+package nl.elec332.lib.packetbuilder.api.field;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
