@@ -1,6 +1,6 @@
 package nl.elec332.lib.packetbuilder.impl.fields.numbers;
 
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractBitField;
 
 /**
@@ -8,7 +8,7 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractBitField;
  */
 public class BitValueField extends AbstractBitField {
 
-    public BitValueField(IValueReference<Number> reference, int bits, int bitsStart) {
+    public BitValueField(ValueReference<Number> reference, int bits, int bitsStart) {
         super(reference, bits, bitsStart);
         if (bits > 30) {
             throw new UnsupportedOperationException();

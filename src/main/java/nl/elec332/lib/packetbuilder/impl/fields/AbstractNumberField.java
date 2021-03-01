@@ -1,7 +1,7 @@
 package nl.elec332.lib.packetbuilder.impl.fields;
 
-import nl.elec332.lib.packetbuilder.api.util.ITypedValueReference;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.TypedValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.util.NumberHelper;
 
 import java.lang.reflect.AnnotatedParameterizedType;
@@ -14,13 +14,13 @@ import java.util.Objects;
  */
 public abstract class AbstractNumberField<T extends Number> extends AbstractSimpleField<T> {
 
-    public AbstractNumberField(IValueReference<T> reference) {
+    public AbstractNumberField(ValueReference<T> reference) {
         super(reference);
         type = Objects.requireNonNull(getType());
     }
 
 
-    public AbstractNumberField(IValueReference<T> reference, Class<T> type) {
+    public AbstractNumberField(ValueReference<T> reference, Class<T> type) {
         super(reference);
         this.type = type;
     }
@@ -62,7 +62,7 @@ public abstract class AbstractNumberField<T extends Number> extends AbstractSimp
 
     @Override
     public void accept(T number) {
-        super.accept(NumberHelper.cast(number, ((ITypedValueReference<T>) valueReference).getType()));
+        super.accept(NumberHelper.cast(number, ((TypedValueReference<T>) valueReference).getType()));
     }
 
     @Override

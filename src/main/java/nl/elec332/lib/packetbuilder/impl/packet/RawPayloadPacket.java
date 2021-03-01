@@ -18,7 +18,6 @@ public class RawPayloadPacket extends AbstractPacketObject {
 
     @Override
     protected void deserializePayload(ByteBuf buffer) {
-        System.out.println(buffer.capacity());
         data = new byte[buffer.readableBytes()];
         buffer.readBytes(data);
     }

@@ -1,7 +1,7 @@
 package nl.elec332.lib.packetbuilder.impl.fields.base;
 
 import io.netty.buffer.ByteBuf;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 
 import java.util.Arrays;
@@ -11,7 +11,7 @@ import java.util.Arrays;
  */
 public class ByteArrayField extends AbstractSimpleField<byte[]> {
 
-    public ByteArrayField(IValueReference<byte[]> reference) {
+    public ByteArrayField(ValueReference<byte[]> reference) {
         super(reference);
     }
 

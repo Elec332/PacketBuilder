@@ -27,4 +27,9 @@ public class Ethernet extends AbstractPacketObject {
     @UnsignedNumberField
     public final int type = 0x0800; //IPv4
 
+    @Override
+    protected int getPayloadLength() {
+        return -1;
+    }
+
 }

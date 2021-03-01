@@ -11,9 +11,13 @@ public class PacketDecoder {
 
     public static <T extends AbstractPacketObject> T decode(byte[] bytes, T root) {
         ByteBuf buffer = Unpooled.wrappedBuffer(bytes).asReadOnly();
+        return decode(buffer, root);
+    }
+
+    public static <T extends AbstractPacketObject> T decode(ByteBuf buffer, T root) {
         root.deserialize(buffer);
-        if (bytes.length != buffer.readerIndex()) {
-            throw new RuntimeException();
+        if (buffer.capacity() != buffer.readerIndex()) {
+            throw new RuntimeException("Not all bytes were read. Bytes provided: " + buffer.capacity() + "  Bytes read: " + buffer.readerIndex());
         }
         return root;
     }

@@ -1,6 +1,6 @@
 package nl.elec332.lib.packetbuilder.impl.fields;
 
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -12,7 +12,7 @@ import java.util.ListIterator;
  */
 public abstract class AbstractListField<T> extends AbstractSimpleField<List<T>> implements List<T> {
 
-    public AbstractListField(IValueReference<List<T>> reference) {
+    public AbstractListField(ValueReference<List<T>> reference) {
         super(reference);
     }
 

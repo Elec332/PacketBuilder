@@ -3,10 +3,7 @@ package nl.elec332.lib.packetbuilder.internal;
 import nl.elec332.lib.packetbuilder.AbstractField;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
 import nl.elec332.lib.packetbuilder.api.IPacketFieldManager;
-import nl.elec332.lib.packetbuilder.api.field.IFieldFactory;
-import nl.elec332.lib.packetbuilder.api.field.PacketField;
-import nl.elec332.lib.packetbuilder.api.field.PacketFieldWrapper;
-import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
+import nl.elec332.lib.packetbuilder.api.field.*;
 import nl.elec332.lib.packetbuilder.impl.fields.FieldRegister;
 import nl.elec332.lib.packetbuilder.util.ValueReference;
 import nl.elec332.lib.packetbuilder.util.reflection.ReflectionHelper;
@@ -51,7 +48,15 @@ public enum PacketFieldManager implements IPacketFieldManager {
                     if (name.isEmpty()) {
                         name = f.getName();
                     }
-                    return new AbstractMap.SimpleEntry<>(name, getFactoryFor(f, factories));
+                    final boolean hidden = f.isAnnotationPresent(HiddenField.class);
+                    final boolean delayed = f.isAnnotationPresent(DelayedField.class);
+                    final Function<AbstractPacketObject, AbstractField<?>> factory = getFactoryFor(f, factories);
+                    return new AbstractMap.SimpleEntry<String, Function<AbstractPacketObject, AbstractField<?>>>(name, spo -> {
+                        AbstractField<?> ret = factory.apply(spo);
+                        ((AbstractInternalField<?>) ret).setHidden(hidden);
+                        ((AbstractInternalField<?>) ret).setDelayed(delayed);
+                        return ret;
+                    });
                 })
                 .collect(Collectors.toList())).stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, pair -> {

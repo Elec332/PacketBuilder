@@ -1,9 +1,9 @@
 package nl.elec332.lib.packetbuilder.util.reflection;
 
-import nl.elec332.lib.packetbuilder.api.util.ITypedValueReference;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.TypedValueReference;
 import nl.elec332.lib.packetbuilder.api.util.UnsafeConsumer;
 import nl.elec332.lib.packetbuilder.api.util.UnsafeSupplier;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
@@ -21,17 +21,17 @@ import java.util.List;
  */
 public class ReflectionHelper {
 
-    public static <T> IValueReference<T> wrapField(Field f, final Object instance) {
+    public static <T> ValueReference<T> wrapField(Field f, final Object instance) {
         return wrapField(f, instance, MethodHandles.lookup());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> IValueReference<T> wrapField(Field f, final Object instance, MethodHandles.Lookup lookup) {
+    public static <T> ValueReference<T> wrapField(Field f, final Object instance, MethodHandles.Lookup lookup) {
         try {
             lookup = lookup.in(f.getDeclaringClass());
             MethodHandle getter = lookup.unreflectGetter(f);
             MethodHandle setter = Modifier.isFinal(f.getModifiers()) ? null : lookup.unreflectSetter(f);
-            return ITypedValueReference.wrap((Class<T>) f.getType(), UnsafeSupplier.wrap(() -> (T) getter.invoke(instance)), setter == null ? null : UnsafeConsumer.wrap(v -> setter.invoke(instance, v)));
+            return TypedValueReference.wrap((Class<T>) f.getType(), UnsafeSupplier.wrap(() -> (T) getter.invoke(instance)), setter == null ? null : UnsafeConsumer.wrap(v -> setter.invoke(instance, v)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

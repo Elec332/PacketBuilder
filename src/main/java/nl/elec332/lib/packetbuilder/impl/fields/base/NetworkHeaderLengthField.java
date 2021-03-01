@@ -1,7 +1,7 @@
 package nl.elec332.lib.packetbuilder.impl.fields.base;
 
 import io.netty.buffer.ByteBuf;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractBitField;
 
 /**
@@ -9,7 +9,7 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractBitField;
  */
 public class NetworkHeaderLengthField extends AbstractBitField {
 
-    public NetworkHeaderLengthField(IValueReference<Number> valueReference, int bits, int bitsStart) {
+    public NetworkHeaderLengthField(ValueReference<Number> valueReference, int bits, int bitsStart) {
         super(valueReference, bits, bitsStart);
     }
 

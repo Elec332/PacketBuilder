@@ -1,18 +1,18 @@
 package nl.elec332.lib.packetbuilder.impl.fields.base;
 
 import io.netty.buffer.ByteBuf;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.IntReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractVarLengthField;
 
 import java.net.InetAddress;
-import java.util.function.IntSupplier;
 
 /**
  * Created by Elec332 on 2/28/2021
  */
 public class InetAddressField extends AbstractVarLengthField<InetAddress> {
 
-    public InetAddressField(IValueReference<InetAddress> reference, IntSupplier length) {
+    public InetAddressField(ValueReference<InetAddress> reference, IntReference length) {
         super(reference, length);
     }
 

@@ -6,17 +6,25 @@ import java.util.function.Supplier;
 /**
  * Created by Elec332 on 2/28/2021
  */
-public interface ITypedValueReference<T> extends IValueReference<T> {
+public interface ValueReference<T> extends Supplier<T>, Consumer<T> {
 
-    Class<T> getType();
+    @Override
+    T get();
 
-    static <T> ITypedValueReference<T> wrap(final Class<T> type, final Supplier<T> supplier, final Consumer<T> consumer) {
-        return new ITypedValueReference<T>() {
+    default boolean hasSetter() {
+        return true;
+    }
 
-            @Override
-            public Class<T> getType() {
-                return type;
-            }
+    @Override
+    void accept(T t);
+
+    @SuppressWarnings("unchecked")
+    default <T2> ValueReference<T2> cast() {
+        return (ValueReference<T2>) this;
+    }
+
+    static <T> ValueReference<T> wrap(final Supplier<T> supplier, final Consumer<T> consumer) {
+        return new ValueReference<T>() {
 
             @Override
             public T get() {

@@ -1,7 +1,7 @@
 package nl.elec332.lib.packetbuilder.impl.fields;
 
 import nl.elec332.lib.packetbuilder.AbstractField;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 
 import java.util.Objects;
 
@@ -15,7 +15,7 @@ public abstract class AbstractSimpleField<T> extends AbstractField<T> {
 //        this((Class<T>) value.getClass(), new ValueReference<>(value));
 //    }
 
-    public AbstractSimpleField(/*Class<T> type, */IValueReference<T> reference) {
+    public AbstractSimpleField(/*Class<T> type, */ValueReference<T> reference) {
         //this.type = type;
         this.valueReference = reference;
     }
@@ -46,7 +46,7 @@ public abstract class AbstractSimpleField<T> extends AbstractField<T> {
 //        this.valueReference = valueRef;
 //    }
 
-    protected final IValueReference<T> valueReference;
+    protected final ValueReference<T> valueReference;
 
     @Override
     public T get() {

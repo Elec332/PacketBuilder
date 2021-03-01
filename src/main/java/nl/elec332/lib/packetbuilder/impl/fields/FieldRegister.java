@@ -2,7 +2,8 @@ package nl.elec332.lib.packetbuilder.impl.fields;
 
 import nl.elec332.lib.packetbuilder.AbstractField;
 import nl.elec332.lib.packetbuilder.api.IPacketFieldManager;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.IntReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.fields.NumberField;
 import nl.elec332.lib.packetbuilder.fields.SimpleField;
 import nl.elec332.lib.packetbuilder.fields.UnsignedNumberField;
@@ -10,6 +11,7 @@ import nl.elec332.lib.packetbuilder.fields.generic.BitsField;
 import nl.elec332.lib.packetbuilder.fields.generic.SimpleConditionalField;
 import nl.elec332.lib.packetbuilder.fields.generic.VariableLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.*;
+import nl.elec332.lib.packetbuilder.util.LazyValue;
 import nl.elec332.lib.packetbuilder.util.NumberHelper;
 import nl.elec332.lib.packetbuilder.util.StringHelper;
 import nl.elec332.lib.packetbuilder.util.reflection.ReflectionHelper;
@@ -19,7 +21,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.function.BooleanSupplier;
-import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 /**
  * Created by Elec332 on 2/28/2021
@@ -30,7 +32,7 @@ public class FieldRegister {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         fieldManager.registerFieldFactory(SimpleField.class, (annotation, packet, type, value) -> {
             try {
-                Constructor<? extends AbstractField<?>> constructor = ReflectionHelper.getConstructor(annotation.value(), IValueReference.class);
+                Constructor<? extends AbstractField<?>> constructor = ReflectionHelper.getConstructor(annotation.value(), ValueReference.class);
                 if (ReflectionHelper.isNonStaticInternalClass(annotation.value())) {
                     return constructor.newInstance(packet, value);
                 } else {
@@ -42,7 +44,7 @@ public class FieldRegister {
         });
         fieldManager.registerFieldFactory(BitsField.class, (annotation, packet, type, value) -> {
             try {
-                return ReflectionHelper.getConstructor(annotation.value(), IValueReference.class, int.class, int.class).newInstance(value, annotation.bits(), annotation.startBit());
+                return ReflectionHelper.getConstructor(annotation.value(), ValueReference.class, int.class, int.class).newInstance(value, annotation.bits(), annotation.startBit());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -50,29 +52,30 @@ public class FieldRegister {
         fieldManager.registerFieldFactory(VariableLengthField.class, (annotation, packet, type, value) -> {
             try {
                 String length = annotation.length();
-                IntSupplier supplier;
+                IntReference supplier;
                 if (StringHelper.isNullOrEmpty(length)) {
                     supplier = null;
                 } else {
                     try {
                         final int len = Integer.parseInt(length);
-                        supplier = () -> len;
+                        supplier = IntReference.wrap(() -> len, null);
                     } catch (NumberFormatException expected) {
                         try {
                             Method m = packet.getClass().getDeclaredMethod(length);
-                            supplier = () -> {
+                            supplier = IntReference.wrap(() -> {
                                 try {
                                     return NumberHelper.toInt(m.invoke(packet));
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
-                            };
+                            }, null);
                         } catch (NoSuchMethodException expectedAgain) {
-                            supplier = () -> NumberHelper.toInt(packet.getAllFields().get(length).get());
+                            Supplier<AbstractField<Object>> field = new LazyValue<>(() -> (AbstractField<Object>) packet.getAllFields().get(length), f -> f.setDelayed(true));
+                            supplier = IntReference.wrap(() -> NumberHelper.toInt(field.get().get()), i -> field.get().set(i));
                         }
                     }
                 }
-                return ReflectionHelper.getConstructor(annotation.value(), IValueReference.class, IntSupplier.class).newInstance(value, supplier);
+                return ReflectionHelper.getConstructor(annotation.value(), ValueReference.class, IntReference.class).newInstance(value, supplier);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

@@ -2,7 +2,7 @@ package nl.elec332.lib.packetbuilder.impl.fields.base;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.util.internal.StringUtil;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 
 /**
@@ -10,7 +10,7 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
  */
 public class MACAddressField extends AbstractSimpleField<String> {
 
-    public MACAddressField(IValueReference<String> reference) {
+    public MACAddressField(ValueReference<String> reference) {
         super(reference);
     }
 

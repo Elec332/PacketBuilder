@@ -2,7 +2,7 @@ package nl.elec332.lib.packetbuilder.impl.fields.base;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 
 /**
@@ -10,7 +10,7 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
  */
 public class ObjectField<O extends AbstractPacketObject> extends AbstractSimpleField<O> {
 
-    public ObjectField(IValueReference<O> reference) {
+    public ObjectField(ValueReference<O> reference) {
         super(reference);
     }
 

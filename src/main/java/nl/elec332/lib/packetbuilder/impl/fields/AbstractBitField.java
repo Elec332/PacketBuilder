@@ -1,17 +1,17 @@
 package nl.elec332.lib.packetbuilder.impl.fields;
 
 import io.netty.buffer.ByteBuf;
-import nl.elec332.lib.packetbuilder.api.util.ITypedValueReference;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.TypedValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 
 /**
  * Created by Elec332 on 2/27/2021
  */
 public abstract class AbstractBitField extends AbstractNumberField<Number> {
 
-    public AbstractBitField(IValueReference<Number> reference, int bits, int bitsStart) {
+    public AbstractBitField(ValueReference<Number> reference, int bits, int bitsStart) {
         super(reference);
-        if (!(reference instanceof ITypedValueReference)) {
+        if (!(reference instanceof TypedValueReference)) {
             throw new IllegalArgumentException();
         }
         if (bits > 48) {

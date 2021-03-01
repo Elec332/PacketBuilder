@@ -77,7 +77,7 @@ public class IPv4 extends AbstractPacketObject {
     protected void beforeSerialization(ByteBuf payload) {
         super.beforeSerialization(payload);
         headerLength = getPacketSize();
-        totalLength = (int) (payload.readableBytes() + headerLength);
+        totalLength = payload.readableBytes() + headerLength;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class IPv4 extends AbstractPacketObject {
 
     @Override
     protected int getPayloadLength() {
-        return totalLength - getPacketSize();
+        return totalLength - headerLength;
     }
 
 }

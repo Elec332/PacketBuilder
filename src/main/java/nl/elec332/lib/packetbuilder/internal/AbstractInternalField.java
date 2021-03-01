@@ -3,12 +3,12 @@ package nl.elec332.lib.packetbuilder.internal;
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractField;
 import nl.elec332.lib.packetbuilder.api.ISerializableObject;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 
 /**
  * Created by Elec332 on 2/26/2021
  */
-public abstract class AbstractInternalField<T> implements ISerializableObject, IValueReference<T> {
+public abstract class AbstractInternalField<T> implements ISerializableObject, ValueReference<T> {
 
     @Override
     public abstract void serialize(ByteBuf buffer);
@@ -17,6 +17,14 @@ public abstract class AbstractInternalField<T> implements ISerializableObject, I
     public abstract void deserialize(ByteBuf buffer);
 
     protected abstract boolean isValid();
+
+    protected abstract boolean isHidden();
+
+    protected abstract void setHidden(boolean hidden);
+
+    protected abstract boolean isDelayed();
+
+    protected abstract void setDelayed(boolean delayed);
 
     @Override
     public abstract int getObjectSize();

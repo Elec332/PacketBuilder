@@ -10,6 +10,9 @@ import java.util.Objects;
  */
 public abstract class AbstractField<T> extends AbstractInternalField<T> {
 
+    private boolean hidden = false;
+    private boolean delayed = false;
+
     @Override
     public abstract void serialize(ByteBuf buffer);
 
@@ -19,6 +22,26 @@ public abstract class AbstractField<T> extends AbstractInternalField<T> {
     @Override
     protected boolean isValid() {
         return true;
+    }
+
+    @Override
+    protected boolean isHidden() {
+        return this.hidden;
+    }
+
+    @Override
+    protected void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    @Override
+    public boolean isDelayed() {
+        return delayed;
+    }
+
+    @Override
+    public void setDelayed(boolean delayed) {
+        this.delayed = delayed;
     }
 
     @Override

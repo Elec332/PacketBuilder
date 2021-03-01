@@ -2,18 +2,18 @@ package nl.elec332.lib.packetbuilder.impl.protocol;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
+import nl.elec332.lib.packetbuilder.api.field.HiddenField;
 import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.fields.NumberField;
 import nl.elec332.lib.packetbuilder.fields.SimpleField;
 import nl.elec332.lib.packetbuilder.fields.UnsignedNumberField;
 import nl.elec332.lib.packetbuilder.fields.generic.BitsField;
 import nl.elec332.lib.packetbuilder.fields.generic.SimpleConditionalField;
-import nl.elec332.lib.packetbuilder.impl.fields.AbstractListField;
+import nl.elec332.lib.packetbuilder.impl.fields.AbstractSizedOptionsList;
 import nl.elec332.lib.packetbuilder.impl.fields.base.NetworkHeaderLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.BitValueField;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,40 +84,30 @@ public class TCP extends AbstractPacketObject {
         }
     }
 
-    class TCPOptionsList extends AbstractListField<TCPOption> {
+    class TCPOptionsList extends AbstractSizedOptionsList<TCPOption> {
 
-        public TCPOptionsList(IValueReference<List<TCPOption>> reference) {
+        public TCPOptionsList(ValueReference<List<TCPOption>> reference) {
             super(reference);
         }
 
         @Override
-        public void serialize(ByteBuf buffer) {
-            for (TCPOption o : get()) {
-                o.serialize(buffer);
-            }
+        protected int expectedListSize() {
+            return headerLength - 20;
         }
 
         @Override
-        public void deserialize(ByteBuf buffer) {
-            int count = 0;
-            int max = headerLength - 20;
-            set(new ArrayList<>());
-            while (max - count > 0) {
-                TCPOption option;
-                switch (buffer.slice().readByte()) {
-                    case 1 -> option = new NOPOption();
-                    case 8 -> option = new Timestamps();
-                    default -> throw new IllegalArgumentException();
-                }
-                option.deserialize(buffer);
-                count += option.length;
-                add(option);
+        protected TCPOption getNextType(ByteBuf buffer) {
+            TCPOption option;
+            byte value = buffer.readByte();
+            switch (value) {
+                case 1 -> option = new NOPOption();
+                case 2 -> option = new SegmentSize();
+                case 3 -> option = new WindowScale();
+                case 4 -> option = new SACKPermitted();
+                case 8 -> option = new Timestamps();
+                default -> throw new IllegalArgumentException(value + "");
             }
-        }
-
-        @Override
-        public int getObjectSize() {
-            return get().stream().mapToInt(AbstractPacketObject::getObjectSize).sum();
+            return option;
         }
 
     }
@@ -129,10 +119,12 @@ public class TCP extends AbstractPacketObject {
             this.kind = (byte) kind;
         }
 
+        @HiddenField
         @RegisteredField
         @NumberField
         public final byte kind;
 
+        @HiddenField
         @RegisteredField
         @SimpleConditionalField(method = "hasLength")
         @UnsignedNumberField(Byte.class)
@@ -167,6 +159,38 @@ public class TCP extends AbstractPacketObject {
         @Override
         protected boolean hasLength() {
             return false;
+        }
+
+    }
+
+    public static class SegmentSize extends TCPOption {
+
+        public SegmentSize() {
+            super("SegmentSize", 2);
+        }
+
+        @RegisteredField
+        @UnsignedNumberField
+        public int value = 1460;
+
+    }
+
+    public static class WindowScale extends TCPOption {
+
+        public WindowScale() {
+            super("WindowScale", 3);
+        }
+
+        @RegisteredField
+        @UnsignedNumberField
+        public short shiftCount = 7;
+
+    }
+
+    public static class SACKPermitted extends TCPOption {
+
+        public SACKPermitted() {
+            super("SACKPermitted", 4);
         }
 
     }

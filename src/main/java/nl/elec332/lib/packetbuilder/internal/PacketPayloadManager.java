@@ -52,7 +52,7 @@ public enum PacketPayloadManager implements IPacketPayloadManager {
         }
         Class<? extends AbstractPacketObject> ret = null;
         for (Map.Entry<Class<? extends AbstractPacketObject>, BiPredicate<AbstractPacketObject, ByteBuf>> entry : possibilities.entrySet()) {
-            if (entry.getValue().test(packet, peekBuffer)) {
+            if (entry.getValue().test(packet, peekBuffer.slice())) {
                 if (ret == null) {
                     ret = entry.getKey();
                 } else {

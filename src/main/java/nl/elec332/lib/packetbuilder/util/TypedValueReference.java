@@ -1,11 +1,9 @@
 package nl.elec332.lib.packetbuilder.util;
 
-import nl.elec332.lib.packetbuilder.api.util.ITypedValueReference;
-
 /**
  * Created by Elec332 on 2/28/2021
  */
-public class TypedValueReference<T> extends ValueReference<T> implements ITypedValueReference<T> {
+public class TypedValueReference<T> extends ValueReference<T> implements nl.elec332.lib.packetbuilder.api.util.TypedValueReference<T> {
 
     public TypedValueReference(Class<T> type) {
         super();

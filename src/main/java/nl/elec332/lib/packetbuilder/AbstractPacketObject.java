@@ -6,6 +6,7 @@ import nl.elec332.lib.packetbuilder.api.ISerializableObject;
 import nl.elec332.lib.packetbuilder.api.util.UnsafeConsumer;
 import nl.elec332.lib.packetbuilder.impl.packet.NoPayloadPacket;
 import nl.elec332.lib.packetbuilder.impl.packet.RawPayloadPacket;
+import nl.elec332.lib.packetbuilder.internal.PacketDecoder;
 import nl.elec332.lib.packetbuilder.internal.PacketFieldManager;
 import nl.elec332.lib.packetbuilder.internal.PacketPayloadManager;
 
@@ -104,7 +105,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
             try {
                 field.deserialize(buffer);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to deserialize field: " + name, e);
+                throw new RuntimeException("Failed to deserialize field: " + name + " in " + AbstractPacketObject.this.getClass(), e);
             }
         });
         deserializePayload(buffer);
@@ -130,7 +131,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
     }
 
     protected int getPayloadLength() {
-        return parent == null ? -1 : parent.getPayloadLength() - getObjectSize();
+        return parent == null ? 0 : Math.max(0, parent.getPayloadLength() - getPacketSize());
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -141,15 +142,23 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         AbstractPacketObject next = PacketPayloadManager.INSTANCE.getPayload(this, buffer.slice());
         if (next != null) {
             payload = next;
+            payload.parent = this;
             ByteBuf payBuf = buffer;
-            if (getPayloadLength() >= 0) {
-                payBuf = buffer.readSlice(getPayloadLength());
+            int payLen = getPayloadLength();
+            if (payLen == 0) {
+                payBuf = Unpooled.EMPTY_BUFFER;
+            } else if (payLen >= 0) {
+                payBuf = buffer.readSlice(payLen);
             }
-            next.deserialize(payBuf);
+            if (payLen >= 0) {
+                PacketDecoder.decode(payBuf, payload);
+            } else {
+                payload.deserialize(payBuf);
+                payBuf.skipBytes(payBuf.readableBytes());
+            }
         } else {
             payload = new NoPayloadPacket();
         }
-        payload.parent = this;
     }
 
     protected void serializePayload(ByteBuf buffer) {
@@ -196,11 +205,17 @@ public abstract class AbstractPacketObject implements ISerializableObject {
     @Override
     public String toString() {
         StringBuilder fields = new StringBuilder();
-        forFields((name, field) -> fields.append(name).append(" = ").append(field.toString()).append(", "));
-        return name + "{" +
-                fields +
-                "payload = " + payload +
-                '}';
+        streamFields().filter(e -> !e.getValue().isHidden()).forEach(entry -> fields.append(entry.getKey()).append(" = ").append(entry.getValue().toString()).append(", "));
+        if (payload != null && !(payload instanceof NoPayloadPacket)) {
+            fields.append("payload = ")
+                    .append(payload);
+        } else if (fields.length() > 0) {
+            fields.delete(fields.length() - 2, fields.length());
+        }
+        if (fields.length() > 0) {
+            fields.reverse().append("{").reverse().append("}");
+        }
+        return name + fields;
     }
 
 }

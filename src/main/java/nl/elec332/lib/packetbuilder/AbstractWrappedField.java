@@ -31,6 +31,26 @@ public abstract class AbstractWrappedField<T, F extends AbstractField<T>> extend
     }
 
     @Override
+    protected boolean isHidden() {
+        return field.isHidden();
+    }
+
+    @Override
+    protected void setHidden(boolean hidden) {
+        field.setHidden(hidden);
+    }
+
+    @Override
+    public boolean isDelayed() {
+        return field.isDelayed();
+    }
+
+    @Override
+    public void setDelayed(boolean delayed) {
+        field.setDelayed(delayed);
+    }
+
+    @Override
     public int getObjectSize() {
         return field.getObjectSize();
     }

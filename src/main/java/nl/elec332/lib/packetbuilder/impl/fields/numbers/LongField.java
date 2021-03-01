@@ -1,7 +1,7 @@
 package nl.elec332.lib.packetbuilder.impl.fields.numbers;
 
 import io.netty.buffer.ByteBuf;
-import nl.elec332.lib.packetbuilder.api.util.IValueReference;
+import nl.elec332.lib.packetbuilder.api.util.ValueReference;
 import nl.elec332.lib.packetbuilder.impl.fields.AbstractNumberField;
 
 /**
@@ -9,7 +9,7 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractNumberField;
  */
 public class LongField extends AbstractNumberField<Long> {
 
-    public LongField(IValueReference<Long> reference) {
+    public LongField(ValueReference<Long> reference) {
         super(reference);
     }
 
