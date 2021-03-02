@@ -1,4 +1,4 @@
-package nl.elec332.lib.packetbuilder.impl.fields.base;
+package nl.elec332.lib.packetbuilder.impl.fields.arrays;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.api.util.ValueReference;
@@ -7,27 +7,33 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 import java.util.Arrays;
 
 /**
- * Created by Elec332 on 2/26/2021
+ * Created by Elec332 on 3/2/2021
  */
-public class ByteArrayField extends AbstractSimpleField<byte[]> {
+public class IntArrayField extends AbstractSimpleField<int[]> {
 
-    public ByteArrayField(ValueReference<byte[]> reference) {
+    public IntArrayField(ValueReference<int[]> reference) {
         super(reference);
     }
 
     @Override
     public void serialize(ByteBuf buffer) {
-        buffer.writeBytes(get());
+        int[] value = get();
+        for (int item : value) {
+            buffer.writeInt(item);
+        }
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        buffer.readBytes(get());
+        int[] value = get();
+        for (int i = 0; i < value.length; i++) {
+            value[i] = buffer.readInt();
+        }
     }
 
     @Override
     public int getObjectSize() {
-        return get().length;
+        return get().length * 4;
     }
 
     @Override

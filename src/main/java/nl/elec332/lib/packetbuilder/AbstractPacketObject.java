@@ -109,6 +109,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
             }
         });
         deserializePayload(buffer);
+        readTrailer(buffer);
         afterDeSerialization();
     }
 
@@ -130,6 +131,14 @@ public abstract class AbstractPacketObject implements ISerializableObject {
                 .sum();
     }
 
+    protected int getTrailerLength() {
+        return -1;
+    }
+
+    protected void readTrailer(ByteBuf buffer) {
+        buffer.skipBytes(buffer.readableBytes());
+    }
+
     protected int getPayloadLength() {
         return parent == null ? 0 : Math.max(0, parent.getPayloadLength() - getPacketSize());
     }
@@ -143,18 +152,23 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         if (next != null) {
             payload = next;
             payload.parent = this;
-            ByteBuf payBuf = buffer;
+            ByteBuf payBuf;
             int payLen = getPayloadLength();
-            if (payLen == 0) {
-                payBuf = Unpooled.EMPTY_BUFFER;
-            } else if (payLen >= 0) {
-                payBuf = buffer.readSlice(payLen);
-            }
             if (payLen >= 0) {
+                if (payLen == 0) {
+                    payBuf = Unpooled.EMPTY_BUFFER;
+                } else {
+                    payBuf = buffer.readSlice(payLen);
+                }
                 PacketDecoder.decode(payBuf, payload);
             } else {
+                int trailLen = getPayloadLength();
+                if (trailLen >= 0) {
+                    payBuf = buffer.readSlice(buffer.readableBytes() - trailLen);
+                } else {
+                    payBuf = buffer;
+                }
                 payload.deserialize(payBuf);
-                payBuf.skipBytes(payBuf.readableBytes());
             }
         } else {
             payload = new NoPayloadPacket();

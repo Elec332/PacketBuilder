@@ -32,7 +32,7 @@ public enum PacketPayloadManager implements IPacketPayloadManager {
     public <LOWER extends AbstractPacketObject, UPPER extends AbstractPacketObject> void bindLayers(Class<LOWER> lower, Class<UPPER> upper, IPayloadBinder<LOWER> payloadBinder) {
         bindLayers(lower, upper, (l, buf) -> {
             boolean[] ret = {true};
-            payloadBinder.bindValues(l, (f1, f2) -> ret[0] |= Objects.equals(f1, f2), (s, o) -> ret[0] |= Objects.equals(((AbstractInternalField<?>) Objects.requireNonNull(l.getAllFields().get(s))).get(), o));
+            payloadBinder.bindValues(l, (f1, f2) -> ret[0] &= Objects.equals(f1, f2), (s, o) -> ret[0] &= Objects.equals(((AbstractInternalField<?>) Objects.requireNonNull(l.getAllFields().get(s))).get(), o));
             return ret[0];
         }, (l, u) -> payloadBinder.bindValues(l, (f1, f2) -> ((AbstractInternalField<?>) f1).importFrom(f2), (s, o) -> ((AbstractInternalField<Object>) Objects.requireNonNull(l.getAllFields().get(s))).accept(o)));
     }

@@ -1,6 +1,7 @@
 package nl.elec332.lib.packetbuilder.impl.fields;
 
 import nl.elec332.lib.packetbuilder.AbstractField;
+import nl.elec332.lib.packetbuilder.AbstractPacketObject;
 import nl.elec332.lib.packetbuilder.api.IPacketFieldManager;
 import nl.elec332.lib.packetbuilder.api.util.IntReference;
 import nl.elec332.lib.packetbuilder.api.util.ValueReference;
@@ -16,17 +17,53 @@ import nl.elec332.lib.packetbuilder.util.NumberHelper;
 import nl.elec332.lib.packetbuilder.util.StringHelper;
 import nl.elec332.lib.packetbuilder.util.reflection.ReflectionHelper;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
  * Created by Elec332 on 2/28/2021
  */
 public class FieldRegister {
+
+    private static Supplier<AbstractField<Object>> getField(AbstractPacketObject packet, String field) {
+        return getField(packet, field, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Supplier<AbstractField<Object>> getField(AbstractPacketObject packet, String field, Consumer<AbstractField<Object>> modifier) {
+        return new LazyValue<>(() -> {
+            String[] fields = field.split("\\.");
+            AbstractField<?> ret = packet.getAllFields().get(fields[0]);
+            for (int i = 1; i < fields.length; i++) {
+                ret = ((AbstractPacketObject) ret.get()).getAllFields().get(fields[i]);
+            }
+            return (AbstractField<Object>) ret;
+        }, modifier);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Supplier<T> getFieldMethodObjectSupplier(AbstractPacketObject packet, String name) {
+        Supplier<Object> supplier;
+        Method m = ReflectionHelper.getMethod(packet.getClass(), name);
+        if (m != null) {
+            m.setAccessible(true);
+            supplier = () -> {
+                try {
+                    return m.invoke(packet);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        } else {
+            Supplier<AbstractField<Object>> field = getField(packet, name);
+            supplier = () -> field.get().get();
+        }
+        return (Supplier<T>) supplier;
+    }
 
     public static void registerFields(IPacketFieldManager fieldManager) {
         MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -60,8 +97,9 @@ public class FieldRegister {
                         final int len = Integer.parseInt(length);
                         supplier = IntReference.wrap(() -> len, null);
                     } catch (NumberFormatException expected) {
-                        try {
-                            Method m = packet.getClass().getDeclaredMethod(length);
+                        Method m = ReflectionHelper.getMethod(packet.getClass(), length);
+                        if (m != null) {
+                            m.setAccessible(true);
                             supplier = IntReference.wrap(() -> {
                                 try {
                                     return NumberHelper.toInt(m.invoke(packet));
@@ -69,8 +107,8 @@ public class FieldRegister {
                                     throw new RuntimeException(e);
                                 }
                             }, null);
-                        } catch (NoSuchMethodException expectedAgain) {
-                            Supplier<AbstractField<Object>> field = new LazyValue<>(() -> (AbstractField<Object>) packet.getAllFields().get(length), f -> f.setDelayed(true));
+                        } else {
+                            Supplier<AbstractField<Object>> field = getField(packet, length, f -> f.setDelayed(true));
                             supplier = IntReference.wrap(() -> NumberHelper.toInt(field.get().get()), i -> field.get().set(i));
                         }
                     }
@@ -83,32 +121,12 @@ public class FieldRegister {
         fieldManager.registerFieldFactory(SimpleConditionalField.class, (annotation, packet, type, value) -> {
             try {
                 BooleanSupplier predicate;
+                String method = annotation.method();
+                Supplier<Object> supplier = getFieldMethodObjectSupplier(packet, method);
                 if (annotation.numberValue() != Long.MIN_VALUE) {
-                    MethodHandle check = lookup.unreflect(packet.getClass().getDeclaredMethod(annotation.method()));
-                    predicate = () -> {
-                        try {
-                            return (boolean) check.invoke(packet);
-                        } catch (Throwable t) {
-                            throw new RuntimeException(t);
-                        }
-                    };
+                    predicate = () -> NumberHelper.toLong(supplier.get()) == annotation.numberValue();
                 } else {
-                    MethodHandle check;
-                    try {
-                        Method m = ReflectionHelper.getMethod(packet.getClass(), annotation.method());
-                        m.setAccessible(true);
-                        check = lookup.unreflect(m);
-                    } catch (Exception e) {
-                        check = lookup.unreflectGetter(packet.getClass().getDeclaredField(annotation.method()));
-                    }
-                    MethodHandle finalCheck = check;
-                    predicate = () -> {
-                        try {
-                            return ((Boolean) finalCheck.invoke(packet));
-                        } catch (Throwable t) {
-                            throw new RuntimeException(t);
-                        }
-                    };
+                    predicate = () -> (boolean) supplier.get();
                 }
                 return new nl.elec332.lib.packetbuilder.impl.fields.optional.SimpleConditionalField<>((AbstractField<?>) value.get(), predicate);
             } catch (Exception e) {

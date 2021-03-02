@@ -10,9 +10,9 @@ import java.nio.charset.StandardCharsets;
 /**
  * Created by Elec332 on 3/1/2021
  */
-public class StringField extends AbstractVarLengthField<String> {
+public class SizedStringField extends AbstractVarLengthField<String> {
 
-    public StringField(ValueReference<String> reference, IntReference length) {
+    public SizedStringField(ValueReference<String> reference, IntReference length) {
         super(reference, length);
     }
 

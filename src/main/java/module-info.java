@@ -17,6 +17,9 @@ module nl.elec332.lib.packetbuilder {
 
     //exports nl.elec332.lib.packetbuilder.impl;
     exports nl.elec332.lib.packetbuilder.impl.fields;
+    exports nl.elec332.lib.packetbuilder.impl.fields.arrays;
+    exports nl.elec332.lib.packetbuilder.impl.fields.arrays.dynamic;
+    exports nl.elec332.lib.packetbuilder.impl.fields.arrays.sized;
     exports nl.elec332.lib.packetbuilder.impl.fields.base;
     exports nl.elec332.lib.packetbuilder.impl.fields.optional;
     exports nl.elec332.lib.packetbuilder.impl.fields.numbers;

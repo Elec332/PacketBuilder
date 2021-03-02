@@ -12,7 +12,9 @@ public class LazyValue<T> implements Supplier<T> {
     public LazyValue(Supplier<T> factory, Consumer<T> modifier) {
         this(() -> {
             T ret = factory.get();
-            modifier.accept(ret);
+            if (modifier != null) {
+                modifier.accept(ret);
+            }
             return ret;
         });
     }
