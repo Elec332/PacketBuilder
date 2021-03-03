@@ -25,7 +25,7 @@ public class Ethernet extends AbstractPacketObject {
 
     @RegisteredField
     @UnsignedNumberField
-    public final int type = 0x0800; //IPv4
+    public int type = -1;
 
     @Override
     protected int getPayloadLength() {

@@ -101,6 +101,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
 
     @Override
     public final void deserialize(ByteBuf buffer) {
+        int index = buffer.readerIndex();
         forFields((name, field) -> {
             try {
                 field.deserialize(buffer);
@@ -109,19 +110,21 @@ public abstract class AbstractPacketObject implements ISerializableObject {
             }
         });
         deserializePayload(buffer);
-        readTrailer(buffer);
-        afterDeSerialization();
+        deserializeTrailer(buffer);
+        int lastIndex = buffer.readerIndex();
+        afterDeSerialization(buffer.readerIndex(index));
+        buffer.readerIndex(lastIndex);
     }
 
     protected void beforeSerialization(ByteBuf payload) {
     }
 
-    protected void afterDeSerialization() {
+    protected void afterDeSerialization(ByteBuf buffer) {
     }
 
     @Override
     public int getObjectSize() {
-        return getPacketSize() + Math.max(0, getPayloadLength());
+        return getPacketSize() + Math.max(0, getPayloadLength()) + Math.max(0, getTrailerLength());
     }
 
     public int getPacketSize() {
@@ -135,12 +138,14 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         return -1;
     }
 
-    protected void readTrailer(ByteBuf buffer) {
-        buffer.skipBytes(buffer.readableBytes());
+    protected void deserializeTrailer(ByteBuf buffer) {
+        if (getPayloadLength() == -1) {
+            buffer.skipBytes(buffer.readableBytes());
+        }
     }
 
     protected int getPayloadLength() {
-        return parent == null ? 0 : Math.max(0, parent.getPayloadLength() - getPacketSize());
+        return (parent == null ? 0 : Math.max(0, parent.getPayloadLength() - getPacketSize())) - Math.max(0, getTrailerLength());
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -162,7 +167,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
                 }
                 PacketDecoder.decode(payBuf, payload);
             } else {
-                int trailLen = getPayloadLength();
+                int trailLen = getTrailerLength();
                 if (trailLen >= 0) {
                     payBuf = buffer.readSlice(buffer.readableBytes() - trailLen);
                 } else {

@@ -8,9 +8,9 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractSimpleField;
 /**
  * Created by Elec332 on 2/27/2021
  */
-public class ObjectField<O extends AbstractPacketObject> extends AbstractSimpleField<O> {
+public class ObjectField extends AbstractSimpleField<AbstractPacketObject> {
 
-    public ObjectField(ValueReference<O> reference) {
+    public ObjectField(ValueReference<AbstractPacketObject> reference) {
         super(reference);
     }
 

@@ -62,7 +62,14 @@ public abstract class AbstractNumberField<T extends Number> extends AbstractSimp
 
     @Override
     public void accept(T number) {
-        super.accept(NumberHelper.cast(number, ((TypedValueReference<T>) valueReference).getType()));
+        Class<T> type = null;
+        if (valueReference instanceof TypedValueReference) {
+            type = NumberHelper.unWrap(((TypedValueReference<T>) valueReference).getType());
+        }
+        if (type == null || !Number.class.isAssignableFrom(type)) {
+            type = this.type;
+        }
+        super.accept(NumberHelper.cast(number, type));
     }
 
     @Override

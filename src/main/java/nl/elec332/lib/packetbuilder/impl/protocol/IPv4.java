@@ -11,6 +11,7 @@ import nl.elec332.lib.packetbuilder.impl.fields.base.NetworkHeaderLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.BitValueField;
 
 import java.net.Inet4Address;
+import java.util.Arrays;
 
 /**
  * Created by Elec332 on 2/26/2021
@@ -20,6 +21,8 @@ public class IPv4 extends AbstractPacketObject {
     public IPv4() {
         super("IPv4");
     }
+
+    private static final int HEADER_LENGTH = 20;
 
     @RegisteredField
     @BitsField(value = BitValueField.class, startBit = 0, bits = 4)
@@ -81,10 +84,25 @@ public class IPv4 extends AbstractPacketObject {
     }
 
     @Override
-    protected void afterDeSerialization() {
-        super.afterDeSerialization();
+    protected void afterDeSerialization(ByteBuf buffer) {
+        super.afterDeSerialization(buffer);
         if (headerLength != getPacketSize()) {
             throw new RuntimeException();
+        }
+        if (headerLength + getPayloadLength() != totalLength) {
+            throw new RuntimeException();
+        }
+        if (headerChecksum != 0) {
+            int check = 0;
+            for (int i = 0; i < HEADER_LENGTH / 2; i++) {
+                check += buffer.readUnsignedShort();
+            }
+            if ((check & 0xffff0000) != 0) {
+                check = (check & 0xffff) + (check >> 16);
+            }
+            if (~((short) check) != 0) {
+                throw new RuntimeException("IPv4 checksum failed!");
+            }
         }
     }
 
