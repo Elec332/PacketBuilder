@@ -120,17 +120,16 @@ public enum PacketFieldManager implements IPacketFieldManager {
                     }
                 };
             }
-
-            if (wAnn != null) {
-                IFieldFactory<Annotation, Object> fif = Objects.requireNonNull(FIELD_FACTORIES.get(wAnn.annotationType()));
-                Annotation finalWAnn = wAnn;
-                final Function<AbstractPacketObject, AbstractField<?>> mainFactory = factory;
-                factory = o -> {
-                    AbstractField<?> field = mainFactory.apply(o);
-                    Class<?> clazz = field.getClass();
-                    return fif.instantiate(finalWAnn, o, (Class<Object>) clazz, new ValueReference<>(field));
-                };
-            }
+        }
+        if (wAnn != null) {
+            IFieldFactory<Annotation, Object> fif = Objects.requireNonNull(FIELD_FACTORIES.get(wAnn.annotationType()));
+            Annotation finalWAnn = wAnn;
+            final Function<AbstractPacketObject, AbstractField<?>> mainFactory = factory;
+            factory = o -> {
+                AbstractField<?> field = mainFactory.apply(o);
+                Class<?> clazz = field.getClass();
+                return fif.instantiate(finalWAnn, o, (Class<Object>) clazz, new ValueReference<>(field));
+            };
         }
         return factory;
     }

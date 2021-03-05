@@ -9,6 +9,7 @@ import nl.elec332.lib.packetbuilder.fields.NumberField;
 import nl.elec332.lib.packetbuilder.fields.SimpleField;
 import nl.elec332.lib.packetbuilder.fields.UnsignedNumberField;
 import nl.elec332.lib.packetbuilder.fields.generic.BitsField;
+import nl.elec332.lib.packetbuilder.fields.generic.MappedField;
 import nl.elec332.lib.packetbuilder.fields.generic.SimpleConditionalField;
 import nl.elec332.lib.packetbuilder.fields.generic.VariableLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.*;
@@ -17,8 +18,8 @@ import nl.elec332.lib.packetbuilder.util.NumberHelper;
 import nl.elec332.lib.packetbuilder.util.StringHelper;
 import nl.elec332.lib.packetbuilder.util.reflection.ReflectionHelper;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -65,23 +66,30 @@ public class FieldRegister {
         return (Supplier<T>) supplier;
     }
 
+    private static <T> T instantiate(Constructor<T> constructor, Object root, Object... params) throws Exception {
+        if (constructor.getParameterCount() == params.length) {
+            return constructor.newInstance(params);
+        } else if (constructor.getParameterCount() == params.length + 1) {
+            Object[] p = new Object[params.length + 1];
+            System.arraycopy(params, 0, p, 1, params.length);
+            p[0] = root;
+            return constructor.newInstance(p);
+        } else {
+            throw new RuntimeException();
+        }
+    }
+
     public static void registerFields(IPacketFieldManager fieldManager) {
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
         fieldManager.registerFieldFactory(SimpleField.class, (annotation, packet, type, value) -> {
             try {
-                Constructor<? extends AbstractField<?>> constructor = ReflectionHelper.getConstructor(annotation.value(), ValueReference.class);
-                if (ReflectionHelper.isNonStaticInternalClass(annotation.value())) {
-                    return constructor.newInstance(packet, value);
-                } else {
-                    return constructor.newInstance(value);
-                }
+                return instantiate(ReflectionHelper.getConstructor(annotation.value(), ValueReference.class), packet, value);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
         fieldManager.registerFieldFactory(BitsField.class, (annotation, packet, type, value) -> {
             try {
-                return ReflectionHelper.getConstructor(annotation.value(), ValueReference.class, int.class, int.class).newInstance(value, annotation.bits(), annotation.startBit());
+                return instantiate(ReflectionHelper.getConstructor(annotation.value(), ValueReference.class, int.class, int.class), packet, value, annotation.bits(), annotation.startBit());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -113,7 +121,7 @@ public class FieldRegister {
                         }
                     }
                 }
-                return ReflectionHelper.getConstructor(annotation.value(), ValueReference.class, IntReference.class).newInstance(value, supplier);
+                return instantiate(ReflectionHelper.getConstructor(annotation.value(), ValueReference.class, IntReference.class), packet, value, supplier);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -180,6 +188,23 @@ public class FieldRegister {
                 return new UnsignedIntField(value.cast());
             }
             throw new UnsupportedOperationException("Unsigned not supported for field type : " + typ);
+        });
+        fieldManager.registerFieldFactory(MappedField.class, (annotation, packet, type, value) -> {
+            try {
+                Field f = ReflectionHelper.getField(packet.getClass(), annotation.field());
+                int i = NumberHelper.toInt(f.get(packet));
+                int idx = 0;
+                int[] vals = annotation.values();
+                while (vals[idx] != i) {
+                    idx++;
+                    if (idx >= vals.length) {
+                        throw new RuntimeException("Value not defined: " + i);
+                    }
+                }
+                return instantiate(ReflectionHelper.getConstructor(annotation.valueMap()[idx], ValueReference.class), packet, value);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 

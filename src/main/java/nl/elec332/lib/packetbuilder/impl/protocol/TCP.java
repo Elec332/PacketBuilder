@@ -1,7 +1,6 @@
 package nl.elec332.lib.packetbuilder.impl.protocol;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
 import nl.elec332.lib.packetbuilder.api.field.HiddenField;
 import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
@@ -15,8 +14,6 @@ import nl.elec332.lib.packetbuilder.impl.fields.AbstractSizedOptionsList;
 import nl.elec332.lib.packetbuilder.impl.fields.base.NetworkHeaderLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.BitValueField;
 
-import java.net.Inet4Address;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

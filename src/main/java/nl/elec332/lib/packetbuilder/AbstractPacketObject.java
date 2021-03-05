@@ -9,6 +9,7 @@ import nl.elec332.lib.packetbuilder.impl.packet.RawPayloadPacket;
 import nl.elec332.lib.packetbuilder.internal.PacketDecoder;
 import nl.elec332.lib.packetbuilder.internal.PacketFieldManager;
 import nl.elec332.lib.packetbuilder.internal.PacketPayloadManager;
+import nl.elec332.lib.packetbuilder.util.reflection.ReflectionHelper;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -48,7 +49,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
     protected <T> void registerField(String fieldName, Class<T> fieldType, Function<T, AbstractField<T>> factory) {
         Field f;
         try {
-            f = getClass().getDeclaredField(fieldName);
+            f = ReflectionHelper.getField(getClass(), fieldName);
             if (f.getType() != fieldType) {
                 throw new NoSuchFieldException("Invalid field type!");
             }
@@ -215,7 +216,7 @@ public abstract class AbstractPacketObject implements ISerializableObject {
 
     @SuppressWarnings("unchecked")
     public <T extends AbstractPacketObject> T getPayload(Class<T> payloadType) {
-        if (payloadType.isAssignableFrom(payload.getClass())) {
+        if (payload == null || payloadType.isAssignableFrom(payload.getClass())) {
             return (T) payload;
         }
         return payload.getPayload(payloadType);

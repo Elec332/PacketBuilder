@@ -58,6 +58,19 @@ public class ReflectionHelper {
         }
     }
 
+    public static Field getField(Class<?> root, String name) {
+        Field ret;
+        if (root == null || root == Object.class) {
+            return null;
+        }
+        try {
+            ret = root.getDeclaredField(name);
+        } catch (Exception e) {
+            ret = getField(root.getSuperclass(), name);
+        }
+        return ret;
+    }
+
     public static Method getMethod(Class<?> root, String name, Class<?>... params) {
         Method ret;
         if (root == null || root == Object.class) {

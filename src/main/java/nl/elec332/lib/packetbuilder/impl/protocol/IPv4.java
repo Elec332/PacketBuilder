@@ -11,7 +11,6 @@ import nl.elec332.lib.packetbuilder.impl.fields.base.NetworkHeaderLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.BitValueField;
 
 import java.net.Inet4Address;
-import java.util.Arrays;
 
 /**
  * Created by Elec332 on 2/26/2021

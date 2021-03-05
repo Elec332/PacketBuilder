@@ -27,7 +27,7 @@ public class SizedObjectField extends AbstractVarLengthField<AbstractPacketObjec
         buffer = buffer.readSlice(length.getAsInt());
         get().deserialize(buffer);
         if (buffer.readableBytes() > 0) {
-            throw new RuntimeException();
+            throw new RuntimeException("Object of type " + get().getClass() + " didn't deserialize the entire buffer, bytes left: " + buffer.readableBytes());
         }
     }
 

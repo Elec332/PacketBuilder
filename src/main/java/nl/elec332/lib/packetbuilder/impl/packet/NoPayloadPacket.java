@@ -14,7 +14,7 @@ public class NoPayloadPacket extends AbstractPacketObject {
 
     @Override
     protected void deserializePayload(ByteBuf buffer) {
-        //buffer.skipBytes(buffer.readableBytes());
+        buffer.skipBytes(buffer.readableBytes());
     }
 
     @Override
