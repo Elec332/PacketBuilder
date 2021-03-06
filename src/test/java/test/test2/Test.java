@@ -69,7 +69,7 @@ public class Test {
         System.out.println("------------");
         testPCAP(packetBuilder, file);
     }
-    
+
     private static final byte[] DATA = {
             (byte) 0x00, (byte) 0x1c, (byte) 0x06, (byte) 0x08, (byte) 0xe7, (byte) 0xdb, (byte) 0x90, (byte) 0xe6,
             (byte) 0xba, (byte) 0x84, (byte) 0x5e, (byte) 0x41, (byte) 0x08, (byte) 0x00, (byte) 0x45, (byte) 0x00,
@@ -88,12 +88,14 @@ public class Test {
         System.out.println(Arrays.toString(DATA_TEST));
         System.out.println(StringUtil.toHexStringPadded(DATA_TEST));
         System.out.println(packetBuilder.decode(DATA_TEST, new BitTestProt()).toString());
-        System.out.println(Arrays.toString(packetBuilder.encode(new BitTestProt(), a -> {})));
+        System.out.println(Arrays.toString(packetBuilder.encode(new BitTestProt(), a -> {
+        })));
         System.out.println(new BitTestProt().getPacketSize());
         System.out.println("BIT_TEST_END");
     }
 
     private static void testPCAP(IPacketBuilder packetBuilder, File file) throws IOException {
+        System.out.println("--------------------PCAPTEST--------------------");
         ClosableIterator<byte[]> it = packetBuilder.readPcapPackets(file);
         while (it.hasNext()) {
             System.out.println(packetBuilder.decode(it.next(), new Ethernet()));
