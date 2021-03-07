@@ -205,11 +205,11 @@ public class TCP extends AbstractPacketObject {
 
         @RegisteredField
         @UnsignedNumberField
-        public long value = 123;
+        public long value = 1545575;
 
         @RegisteredField
         @UnsignedNumberField
-        public long echoReply = 34565;
+        public long echoReply = 0x8d9d9dfaL;
 
     }
 

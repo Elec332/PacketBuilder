@@ -9,12 +9,11 @@ import nl.elec332.lib.packetbuilder.impl.packet.RawPayloadPacket;
 import nl.elec332.lib.packetbuilder.internal.PacketDecoder;
 import nl.elec332.lib.packetbuilder.internal.PacketFieldManager;
 import nl.elec332.lib.packetbuilder.internal.PacketPayloadManager;
+import nl.elec332.lib.packetbuilder.util.ValueReference;
 import nl.elec332.lib.packetbuilder.util.reflection.ReflectionHelper;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -32,11 +31,15 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         this.fieldsFetched = false;
         this.fieldFactories = new HashMap<>();
         this.payload = null;
+        this.fieldReferences = new HashMap<>();
+        this.fieldModifiers = new HashMap<>();
     }
 
     protected final String name;
     private final Map<Field, Function<Object, AbstractField<?>>> fieldFactories;
     private Map<String, AbstractField<?>> fields;
+    private final Map<String, ValueReference<AbstractField<?>>> fieldReferences;
+    private final Map<String, Consumer<AbstractField<?>>> fieldModifiers;
     private boolean fieldsFetched;
     private AbstractPacketObject payload;
     private AbstractPacketObject parent;
@@ -59,6 +62,43 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         fieldFactories.put(f, (Function<Object, AbstractField<?>>) (Function<?, ?>) factory);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected <T> void addModifier(String fieldName, Consumer<AbstractField<T>> modifier) {
+        if (modifier == null) {
+            return;
+        }
+        Consumer<AbstractField<?>> c = (Consumer<AbstractField<?>>) (Consumer) modifier;
+        if (fieldsFetched) {
+            AbstractField field = this.fields.get(fieldName);
+            if (field == null) {
+                throw new IllegalArgumentException("No such field: " + fieldName);
+            }
+            modifier.accept(field);
+        } else {
+            fieldModifiers.merge(fieldName, c, Consumer::andThen);
+        }
+    }
+
+    public Supplier<AbstractField<Object>> getField(String name) {
+        return getField(name, null);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public Supplier<AbstractField<Object>> getField(String name, Consumer<AbstractField<Object>> modifier) {
+        addModifier(name, modifier);
+        ValueReference<AbstractField<?>> ret = fieldReferences.computeIfAbsent(name, n -> new ValueReference<>(null));
+        if (fieldsFetched) {
+            if (ret.get() == null) {
+                AbstractField<?> field = this.fields.get(name);
+                if (field == null) {
+                    throw new IllegalArgumentException("No such field: " + name);
+                }
+                ret.accept(field);
+            }
+        }
+        return (Supplier<AbstractField<Object>>) (ValueReference) ret;
+    }
+
     protected final void forFields(BiConsumer<String, AbstractField<?>> consumer) {
         streamFields().forEach(e -> consumer.accept(e.getKey(), e.getValue()));
     }
@@ -77,6 +117,17 @@ public abstract class AbstractPacketObject implements ISerializableObject {
             return;
         }
         this.fields = Collections.unmodifiableMap(PacketFieldManager.INSTANCE.getFields(this, fieldFactories));
+        fieldReferences.forEach((name, ref) -> {
+            AbstractField<?> field = this.fields.get(name);
+            if (field == null) {
+                throw new IllegalArgumentException("No such field: " + name);
+            }
+            Consumer<AbstractField<?>> mod = fieldModifiers.get(name);
+            if (mod != null) {
+                mod.accept(field);
+            }
+            ref.accept(field);
+        });
         fieldsFetched = true;
     }
 
@@ -86,18 +137,29 @@ public abstract class AbstractPacketObject implements ISerializableObject {
 
     @Override
     public final void serialize(ByteBuf buffer) {
+        List<Map.Entry<AbstractField<?>, Integer>> callbacks = new ArrayList<>();
         checkFields();
         ByteBuf payload = Unpooled.buffer();
         serializePayload(payload);
         beforeSerialization(payload);
+        int index = buffer.writerIndex();
         forFields((name, field) -> {
             try {
+                int idx = buffer.writerIndex();
                 field.serialize(buffer);
+                if (field.isDelayed()) {
+                    callbacks.add(new AbstractMap.SimpleEntry<>(field, idx));
+                }
             } catch (Exception e) {
                 throw new RuntimeException("Failed to serialize field: " + name, e);
             }
         });
         buffer.writeBytes(payload);
+        int lastIndex = buffer.writerIndex();
+        afterSerialization(buffer.asReadOnly().readerIndex(index));
+        buffer.writerIndex(lastIndex);
+        callbacks.forEach(e -> e.getKey().serialize(buffer.writerIndex(e.getValue())));
+        buffer.writerIndex(lastIndex);
     }
 
     @Override
@@ -113,11 +175,14 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         deserializePayload(buffer);
         deserializeTrailer(buffer);
         int lastIndex = buffer.readerIndex();
-        afterDeSerialization(buffer.readerIndex(index));
+        afterDeSerialization(buffer.asReadOnly().readerIndex(index));
         buffer.readerIndex(lastIndex);
     }
 
     protected void beforeSerialization(ByteBuf payload) {
+    }
+
+    protected void afterSerialization(ByteBuf packet) {
     }
 
     protected void afterDeSerialization(ByteBuf buffer) {

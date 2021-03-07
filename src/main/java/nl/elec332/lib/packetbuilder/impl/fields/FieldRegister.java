@@ -13,7 +13,6 @@ import nl.elec332.lib.packetbuilder.fields.generic.MappedField;
 import nl.elec332.lib.packetbuilder.fields.generic.SimpleConditionalField;
 import nl.elec332.lib.packetbuilder.fields.generic.VariableLengthField;
 import nl.elec332.lib.packetbuilder.impl.fields.numbers.*;
-import nl.elec332.lib.packetbuilder.util.LazyValue;
 import nl.elec332.lib.packetbuilder.util.NumberHelper;
 import nl.elec332.lib.packetbuilder.util.StringHelper;
 import nl.elec332.lib.packetbuilder.util.reflection.ReflectionHelper;
@@ -34,16 +33,22 @@ public class FieldRegister {
         return getField(packet, field, null);
     }
 
-    @SuppressWarnings("unchecked")
     private static Supplier<AbstractField<Object>> getField(AbstractPacketObject packet, String field, Consumer<AbstractField<Object>> modifier) {
-        return new LazyValue<>(() -> {
-            String[] fields = field.split("\\.");
-            AbstractField<?> ret = packet.getAllFields().get(fields[0]);
-            for (int i = 1; i < fields.length; i++) {
-                ret = ((AbstractPacketObject) ret.get()).getAllFields().get(fields[i]);
+        String[] fields = field.split("\\.");
+        if (fields.length == 1) {
+            return packet.getField(field, modifier);
+        } else {
+            ValueReference<AbstractField<Object>> ret = new nl.elec332.lib.packetbuilder.util.ValueReference<>();
+            Consumer<AbstractField<Object>> mod = modifier.andThen(ret);
+            for (int i = fields.length - 1; i > 0; i--) {
+                final Consumer<AbstractField<Object>> mod2 = mod;
+                int fi = i;
+                mod = modifier.andThen(f -> ((AbstractPacketObject) f.get()).getField(fields[fi], mod2));
             }
-            return (AbstractField<Object>) ret;
-        }, modifier);
+            packet.getField(fields[0], mod);
+            return ret;
+
+        }
     }
 
     @SuppressWarnings("unchecked")

@@ -59,6 +59,9 @@ public class Test {
             });
         })));
 
+        test2(packetBuilder);
+        test3(packetBuilder);
+
         System.out.println("-------");
         byte[] t2 = {0, 28, 6, 8, -25, -37, -112, -26, -70, -124, 94, 65, 8, 0, 69, 0, 0, 52, 30, 25, 64, 0, -128, 6, 0, 0, -64, -88, 1, 10, -64, -88, 1, -65, -20, 95, 0, 102, 20, 23, -35, -19, 0, 2, -7, -55, -128, 16, -6, -16, -124, 52, 0, 0, 1, 1, 8, 10, 0, 0, 0, 123, 0, 0, -121, 5};
 
@@ -80,6 +83,48 @@ public class Test {
             (byte) 0xfa, (byte) 0xf0, (byte) 0x84, (byte) 0x34, (byte) 0x00, (byte) 0x00
     };
 
+    private static final byte[] DATA_2 = {
+            (byte) 0x00, (byte) 0x26, (byte) 0x62, (byte) 0x2f, (byte) 0x47, (byte) 0x87, (byte) 0x00, (byte) 0x1d,
+            (byte) 0x60, (byte) 0xb3, (byte) 0x01, (byte) 0x84, (byte) 0x08, (byte) 0x00, (byte) 0x45, (byte) 0x00,
+            (byte) 0x00, (byte) 0x34, (byte) 0xa8, (byte) 0xd0, (byte) 0x40, (byte) 0x00, (byte) 0x40, (byte) 0x06,
+            (byte) 0x9d, (byte) 0x72, (byte) 0xc0, (byte) 0xa8, (byte) 0x01, (byte) 0x03, (byte) 0x3f, (byte) 0x74,
+            (byte) 0xf3, (byte) 0x61, (byte) 0xe5, (byte) 0xc0, (byte) 0x00, (byte) 0x50, (byte) 0xe5, (byte) 0x94,
+            (byte) 0x3d, (byte) 0xab, (byte) 0xa3, (byte) 0xc4, (byte) 0x80, (byte) 0xa0, (byte) 0x80, (byte) 0x10,
+            (byte) 0x00, (byte) 0x2e, (byte) 0x93, (byte) 0x41, (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x01,
+            (byte) 0x08, (byte) 0x0a, (byte) 0x00, (byte) 0x17, (byte) 0x95, (byte) 0x67, (byte) 0x8d, (byte) 0x9d,
+            (byte) 0x9d, (byte) 0xfa
+    };
+
+    private static void test2(IPacketBuilder packetBuilder) {
+        System.out.println("--------------------- LATE SERIALIZATION TEST ---------------------");
+        Ethernet ethernet = new Ethernet();
+        System.out.println(packetBuilder.decode(DATA_2, ethernet).toString());
+        System.out.println(Arrays.toString(packetBuilder.encode(ethernet)));
+        System.out.println(Arrays.toString(DATA_2));
+        System.out.println(Arrays.toString(packetBuilder.encode(new Ethernet(), e -> {
+            e.destination = "00:26:62:2f:47:87";
+            e.source = "00:1d:60:b3:01:84";
+            e.addPayloadT(new IPv4(), ip -> {
+                ip.source = (Inet4Address) Inet4Address.getByName("192.168.1.3");
+                ip.destination = (Inet4Address) Inet4Address.getByName("63.116.243.97");
+                ip.identification = 0xa8d0;
+                ip.ttl = 64;
+                //ip.headerChecksum = 0x9d72;
+                ip.addPayload(new TCP(), tcp -> {
+                    tcp.sourcePort = 58816;
+                    tcp.destinationPort = 80;
+                    tcp.seq = (int) 3851697579L;
+                    tcp.ack = (int) 2747564192L;
+                    tcp.flags = 0x010;
+                    tcp.windowSize = 0x002e;
+                    tcp.checksum = 0x9341;
+                    tcp.options = Arrays.asList(new TCP.NOPOption(), new TCP.NOPOption(), new TCP.Timestamps());
+                });
+            });
+        })));
+        System.out.println("------------------- LATE SERIALIZATION TEST END -------------------");
+    }
+
     private static void test(IPacketBuilder packetBuilder) {
         byte[] DATA_TEST = {
                 (byte) 0xa3, 0x7c
@@ -94,11 +139,20 @@ public class Test {
         System.out.println("BIT_TEST_END");
     }
 
+    private static void test3(IPacketBuilder packetBuilder) {
+        System.out.println("--------------------DELAYEDTEST--------------------");
+        byte[] data = packetBuilder.encode(new LenTestProt(), l -> l.value = "stringValue");
+        System.out.println(Arrays.toString(data));
+        System.out.println(packetBuilder.decode(data, new LenTestProt()));
+        System.out.println("--------------------DELAYEDTEST--------------------");
+    }
+
     private static void testPCAP(IPacketBuilder packetBuilder, File file) throws IOException {
         System.out.println("--------------------PCAPTEST--------------------");
         ClosableIterator<byte[]> it = packetBuilder.readPcapPackets(file);
         while (it.hasNext()) {
-            System.out.println(packetBuilder.decode(it.next(), new Ethernet()));
+            Ethernet ethernet = packetBuilder.decode(it.next(), new Ethernet());
+            System.out.println(ethernet);
         }
         it.close();
     }

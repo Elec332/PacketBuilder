@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
  * Created by Elec332 on 3/1/2021
  */
 
-//Todo: Implement
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DelayedField {

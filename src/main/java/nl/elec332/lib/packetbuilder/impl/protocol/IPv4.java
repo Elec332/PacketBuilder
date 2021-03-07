@@ -2,6 +2,7 @@ package nl.elec332.lib.packetbuilder.impl.protocol;
 
 import io.netty.buffer.ByteBuf;
 import nl.elec332.lib.packetbuilder.AbstractPacketObject;
+import nl.elec332.lib.packetbuilder.api.field.DelayedField;
 import nl.elec332.lib.packetbuilder.api.field.RegisteredField;
 import nl.elec332.lib.packetbuilder.fields.UnsignedNumberField;
 import nl.elec332.lib.packetbuilder.fields.generic.BitsField;
@@ -63,6 +64,7 @@ public class IPv4 extends AbstractPacketObject {
     @UnsignedNumberField
     public short protocol = -1;
 
+    @DelayedField
     @RegisteredField
     @UnsignedNumberField
     public int headerChecksum = 0;
@@ -103,6 +105,23 @@ public class IPv4 extends AbstractPacketObject {
                 throw new RuntimeException("IPv4 checksum failed!");
             }
         }
+    }
+
+    @Override
+    protected void afterSerialization(ByteBuf packet) {
+        super.afterSerialization(packet);
+        int check = 0;
+        for (int i = 0; i < HEADER_LENGTH / 2; i++) {
+            int s = packet.readUnsignedShort();
+            if (i == 5) {
+                continue;
+            }
+            check += s;
+        }
+        if ((check & 0xffff0000) != 0) {
+            check = (check & 0xffff) + (check >> 16);
+        }
+        headerChecksum = ~((short) check);
     }
 
     @Override
