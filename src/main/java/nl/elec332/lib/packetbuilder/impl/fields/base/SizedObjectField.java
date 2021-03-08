@@ -19,12 +19,12 @@ public class SizedObjectField extends AbstractVarLengthField<AbstractPacketObjec
     public void serialize(ByteBuf buffer) {
         AbstractPacketObject object = get();
         object.serialize(buffer);
-        length.accept(object.getObjectSize());
+        setLength(object.getObjectSize());
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        buffer = buffer.readSlice(length.getAsInt());
+        buffer = buffer.readSlice(getLength());
         get().deserialize(buffer);
         if (buffer.readableBytes() > 0) {
             throw new RuntimeException("Object of type " + get().getClass() + " didn't deserialize the entire buffer, bytes left: " + buffer.readableBytes());

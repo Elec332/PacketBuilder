@@ -22,7 +22,7 @@ public class PacketBuilder implements IPacketBuilder {
 
     @Override
     public <T extends AbstractPacketObject> T decode(ByteBuf buffer, T root) {
-        return null;
+        return PacketDecoder.decode(buffer, root);
     }
 
     @Override

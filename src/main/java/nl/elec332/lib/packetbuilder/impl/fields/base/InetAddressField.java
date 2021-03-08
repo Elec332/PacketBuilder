@@ -19,7 +19,7 @@ public class InetAddressField extends AbstractVarLengthField<InetAddress> {
     @Override
     public void serialize(ByteBuf buffer) {
         byte[] data = get().getAddress();
-        if (length.getAsInt() != data.length) {
+        if (getLength() != data.length) {
             throw new RuntimeException();
         }
         buffer.writeBytes(data);
@@ -27,7 +27,7 @@ public class InetAddressField extends AbstractVarLengthField<InetAddress> {
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        byte[] data = new byte[length.getAsInt()];
+        byte[] data = new byte[getLength()];
         buffer.readBytes(data);
         try {
             set(InetAddress.getByAddress(data));
@@ -38,7 +38,7 @@ public class InetAddressField extends AbstractVarLengthField<InetAddress> {
 
     @Override
     public int getObjectSize() {
-        return length.getAsInt();
+        return getLength();
     }
 
 }

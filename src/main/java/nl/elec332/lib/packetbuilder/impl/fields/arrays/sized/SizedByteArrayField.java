@@ -20,12 +20,12 @@ public class SizedByteArrayField extends AbstractVarLengthField<byte[]> {
     public void serialize(ByteBuf buffer) {
         byte[] value = get();
         buffer.writeBytes(value);
-        length.accept(value.length);
+        setLength(value.length);
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        byte[] value = new byte[length.getAsInt()];
+        byte[] value = new byte[getLength()];
         buffer.readBytes(value);
         set(value);
     }

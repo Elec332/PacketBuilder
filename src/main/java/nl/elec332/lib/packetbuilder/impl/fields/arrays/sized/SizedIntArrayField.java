@@ -22,12 +22,12 @@ public class SizedIntArrayField extends AbstractVarLengthField<int[]> {
         for (int item : value) {
             buffer.writeInt(item);
         }
-        length.accept(value.length);
+        setLength(value.length);
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        int[] value = new int[length.getAsInt()];
+        int[] value = new int[getLength()];
         for (int i = 0; i < value.length; i++) {
             value[i] = buffer.readInt();
         }

@@ -22,12 +22,12 @@ public class SizedFloatArrayField extends AbstractVarLengthField<float[]> {
         for (float item : value) {
             buffer.writeFloat(item);
         }
-        length.accept(value.length);
+        setLength(value.length);
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        float[] value = new float[length.getAsInt()];
+        float[] value = new float[getLength()];
         for (int i = 0; i < value.length; i++) {
             value[i] = buffer.readFloat();
         }

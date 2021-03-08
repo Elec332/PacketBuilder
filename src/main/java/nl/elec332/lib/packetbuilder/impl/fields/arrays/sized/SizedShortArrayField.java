@@ -22,12 +22,12 @@ public class SizedShortArrayField extends AbstractVarLengthField<short[]> {
         for (short item : value) {
             buffer.writeShort(item);
         }
-        length.accept(value.length);
+        setLength(value.length);
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        short[] value = new short[length.getAsInt()];
+        short[] value = new short[getLength()];
         for (int i = 0; i < value.length; i++) {
             value[i] = buffer.readShort();
         }

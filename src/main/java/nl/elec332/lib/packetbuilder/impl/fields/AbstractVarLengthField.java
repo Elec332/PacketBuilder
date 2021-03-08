@@ -13,6 +13,16 @@ public abstract class AbstractVarLengthField<T> extends AbstractSimpleField<T> {
         this.length = length;
     }
 
-    protected final IntReference length;
+    private final IntReference length;
+
+    public int getLength() {
+        return this.length.getAsInt();
+    }
+
+    protected void setLength(int length) {
+        if (this.length.hasSetter()) {
+            this.length.accept(length);
+        }
+    }
 
 }

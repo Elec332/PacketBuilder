@@ -19,6 +19,7 @@ public class PCAPReader {
     private static final int PCAPNG_SHB = 0x0a0d0d0a;
     private static final int PCAPNG_IDB = 0x00000001;
     private static final int PCAPNG_EPB = 0x00000006;
+    private static final int PCAPNG_ISB = 0x00000005;
 
     public static ClosableIterator<byte[]> readPcapPackets(File file) throws IOException {
         if (ByteOrder.nativeOrder() != ByteOrder.LITTLE_ENDIAN) {
@@ -53,11 +54,15 @@ public class PCAPReader {
     }
 
     private static ClosableIterator<byte[]> readPcap(FileInputStream fis) throws IOException {
-        int skip = 18;
+        int skip = 16;
         if (fis.skip(skip) != skip) {
             throw new EOFException();
         }
         checkNetwork(fis);
+        skip = 2;
+        if (fis.skip(skip) != skip) {
+            throw new EOFException();
+        }
         AtomicBoolean closed = new AtomicBoolean(false);
 
         return new ClosableIterator<>() {
@@ -171,10 +176,27 @@ public class PCAPReader {
                     return null;
                 }
                 return readNextBlock(fis, (int) readLE32(fis));
+            case PCAPNG_ISB:
+                readISB(fis);
+                if (fis.available() < 20) {
+                    return null;
+                }
+                return readNextBlock(fis, (int) readLE32(fis));
             case PCAPNG_EPB:
                 return readEPB(fis);
             default:
                 throw new UnsupportedEncodingException("Identifier: " + identifier + "  " + fis.available());
+        }
+    }
+
+    private static void readISB(FileInputStream fis) throws IOException {
+        long length = readLE32(fis);
+        if (length > 256) {
+            throw new UnsupportedEncodingException();
+        }
+        int skip = (int) (length - 8);
+        if (fis.skip(skip) != skip) {
+            throw new EOFException();
         }
     }
 

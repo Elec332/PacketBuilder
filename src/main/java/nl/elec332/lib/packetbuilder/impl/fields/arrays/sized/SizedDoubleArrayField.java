@@ -22,12 +22,12 @@ public class SizedDoubleArrayField extends AbstractVarLengthField<double[]> {
         for (double item : value) {
             buffer.writeDouble(item);
         }
-        length.accept(value.length);
+        setLength(value.length);
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        double[] value = new double[length.getAsInt()];
+        double[] value = new double[getLength()];
         for (int i = 0; i < value.length; i++) {
             value[i] = buffer.readDouble();
         }

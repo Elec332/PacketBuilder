@@ -19,12 +19,12 @@ public class SizedStringField extends AbstractVarLengthField<String> {
     @Override
     public void serialize(ByteBuf buffer) {
         buffer.writeBytes(get().getBytes(StandardCharsets.UTF_8));
-        length.accept(getObjectSize());
+        setLength(getObjectSize());
     }
 
     @Override
     public void deserialize(ByteBuf buffer) {
-        set(StandardCharsets.UTF_8.decode(buffer.readBytes(length.getAsInt()).nioBuffer()).toString());
+        set(StandardCharsets.UTF_8.decode(buffer.readBytes(getLength()).nioBuffer()).toString());
     }
 
     @Override

@@ -39,11 +39,14 @@ public class FieldRegister {
             return packet.getField(field, modifier);
         } else {
             ValueReference<AbstractField<Object>> ret = new nl.elec332.lib.packetbuilder.util.ValueReference<>();
-            Consumer<AbstractField<Object>> mod = modifier.andThen(ret);
+            Consumer<AbstractField<Object>> mod = modifier == null ? ret : modifier.andThen(ret);
             for (int i = fields.length - 1; i > 0; i--) {
                 final Consumer<AbstractField<Object>> mod2 = mod;
                 int fi = i;
-                mod = modifier.andThen(f -> ((AbstractPacketObject) f.get()).getField(fields[fi], mod2));
+                mod = f -> ((AbstractPacketObject) f.get()).getField(fields[fi], mod2);
+                if (modifier != null) {
+                    mod = modifier.andThen(mod);
+                }
             }
             packet.getField(fields[0], mod);
             return ret;

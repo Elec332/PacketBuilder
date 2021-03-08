@@ -156,6 +156,11 @@ public abstract class AbstractPacketObject implements ISerializableObject {
         });
         buffer.writeBytes(payload);
         int lastIndex = buffer.writerIndex();
+        serializeTrailer(buffer);
+        if (getTrailerLength() >= 0 && buffer.writerIndex() - lastIndex != getTrailerLength()) {
+            throw new RuntimeException("Invalid trailer!");
+        }
+        lastIndex = buffer.writerIndex();
         afterSerialization(buffer.asReadOnly().readerIndex(index));
         buffer.writerIndex(lastIndex);
         callbacks.forEach(e -> e.getKey().serialize(buffer.writerIndex(e.getValue())));
@@ -202,6 +207,9 @@ public abstract class AbstractPacketObject implements ISerializableObject {
 
     protected int getTrailerLength() {
         return -1;
+    }
+
+    protected void serializeTrailer(ByteBuf buffer) {
     }
 
     protected void deserializeTrailer(ByteBuf buffer) {
